@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Brand Colors -->
+    <color name="primary">#007a8a</color>
+    <color name="secondary">#007a8a</color>
+    <color name="background_light">#f1f2f4</color>
+    <color name="background_dark">#191e24</color>
+    <color name="surface_dark">#242427</color>
+
+    <color name="status_green">#43A047</color>
+    <color name="alert_red">#D32F2F</color>
+    <color name="history_orange">#F57C00</color>
+    <color name="contact_blue">#1976D2</color>
+    <color name="accent_purple">#852dcd</color>
+
+    <!-- Alpha / Light Versions -->
+    <color name="alert_red_bg">#1AD32F2F</color>
+    <color name="history_orange_bg">#1AF57C00</color>
+    <color name="contact_blue_bg">#1A1976D2</color>
+    <color name="primary_bg">#1A007a8a</color>
+    <color name="bg_accent_purple_alpha">#1A852DCD</color>
+    <color name="stroke_accent_purple_alpha">#4D852DCD</color>
+
+    <!-- Required for compilation fix -->
+    <color name="bg_primary_alpha">#1A007a8a</color>
+    <color name="bg_status_green_alpha">#1A43A047</color>
+    <color name="bg_alert_red_alpha">#1AD32F2F</color>
+    <color name="stroke_red_alpha">#4DFF0000</color>
+
+    <color name="text_dark">#101818</color>
+    <color name="text_muted">#5e878d</color>
+    <color name="text_primary_light">#101818</color>
+    <color name="text_secondary_light">#5e878d</color>
+    <color name="text_secondary_dark">#B0B0B0</color>
+    <color name="border_light">#E0E4E6</color>
+    <color name="border_dark">#3f3f46</color>
+</resources>

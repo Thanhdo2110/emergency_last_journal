@@ -1,0 +1,42 @@
+<resources>
+    <string name="app_name">Nhật Ký Khẩn Cấp</string>
+    <string name="home">Trang chủ</string>
+    <string name="map">Bản đồ</string>
+    <string name="history">Lịch sử</string>
+    <string name="profile">Cá nhân</string>
+    <string name="sos">Khẩn cấp (SOS)</string>
+    <string name="settings">Cài đặt</string>
+    <string name="account">Tài khoản</string>
+
+    <string name="status_safe">Trạng thái: An toàn</string>
+    <string name="status_tracking">TRẠNG THÁI: ĐANG THEO DÕI</string>
+    <string name="status_warning">CẢNH BÁO: XÁC NHẬN AN TOÀN!</string>
+
+    <string name="device_protected">Thiết bị của bạn đang được bảo vệ</string>
+    <string name="timer_remaining">THỜI GIAN BẢO VỆ CÒN LẠI</string>
+
+    <string name="create_journal">Tạo Nhật ký và Hẹn giờ</string>
+    <string name="start_session">Bắt đầu phiên bảo vệ mới ngay lập tức</string>
+    <string name="view_history">Xem Lịch sử</string>
+    <string name="history_desc">Xem lại lộ trình đã lưu trước đây</string>
+    <string name="trusted_contacts">Danh bạ Tin cậy</string>
+    <string name="contacts_desc">Quản lý người nhận cảnh báo</string>
+
+    <string name="route_details">Lộ trình di chuyển</string>
+    <string name="current_status">Tình trạng hiện tại</string>
+    <string name="safety_timer">Hẹn giờ An toàn</string>
+    <string name="evidence_photo">Chụp ảnh bằng chứng</string>
+    <string name="add_photo">THÊM ẢNH</string>
+    <string name="save_and_activate">LƯU và KÍCH HOẠT</string>
+
+    <string name="search_history">Tìm kiếm nhật ký...</string>
+    <string name="filter_all">Tất cả</string>
+    <string name="filter_success">Thành công</string>
+    <string name="filter_warning">Cảnh báo</string>
+
+    <string name="contact_header">Người thân nhận cảnh báo</string>
+    <string name="contact_sub">Những người này sẽ nhận được thông báo khẩn cấp và vị trí của bạn.</string>
+    <string name="privacy_title">Quyền riêng tư</string>
+    <string name="privacy_desc">Bạn có thể tắt quyền nhận vị trí cho từng người bất kỳ lúc nào.</string>
+    <string name="add_contact">Thêm người thân</string>
+</resources>
