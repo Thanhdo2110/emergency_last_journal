@@ -31,4 +31,8 @@ public interface SessionDao {
 
     @Query("SELECT * FROM gps_logs WHERE sessionId = :sessionId ORDER BY recordedAt ASC")
     LiveData<List<GpsLogEntity>> getLogsForSession(int sessionId);
+
+    // Thêm phương thức truy vấn đồng bộ cho màn hình chi tiết lịch sử
+    @Query("SELECT * FROM gps_logs WHERE sessionId = :sessionId ORDER BY recordedAt ASC")
+    List<GpsLogEntity> getLogsForSessionSync(int sessionId);
 }

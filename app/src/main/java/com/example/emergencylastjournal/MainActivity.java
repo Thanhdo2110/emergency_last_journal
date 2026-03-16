@@ -8,6 +8,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.navigation.NavController;
+import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
@@ -42,8 +43,30 @@ public class MainActivity extends AppCompatActivity {
         if (navHostFragment != null) {
             navController = navHostFragment.getNavController();
             
-            // Kết nối chuẩn và duy nhất để điều hướng mượt mà
+            // Thiết lập mặc định của NavigationUI
             NavigationUI.setupWithNavController(bottomNav, navController);
+
+            // Tùy chỉnh xử lý click để luôn quay về Home "sạch" nhất
+            bottomNav.setOnItemSelectedListener(item -> {
+                int itemId = item.getItemId();
+                
+                // Nếu nhấn vào nút Home
+                if (itemId == R.id.navigation_home) {
+                    // Kiểm tra nếu không phải đang ở Home thì mới thực hiện chuyển
+                    if (navController.getCurrentDestination() != null && 
+                        navController.getCurrentDestination().getId() != R.id.navigation_home) {
+                        
+                        navController.navigate(itemId, null, new NavOptions.Builder()
+                                .setPopUpTo(R.id.nav_graph, true) // Xóa sạch backstack tới tận gốc
+                                .setLaunchSingleTop(true)
+                                .build());
+                    }
+                    return true;
+                }
+                
+                // Các tab khác sử dụng logic chuyển hướng mặc định của thư viện
+                return NavigationUI.onNavDestinationSelected(item, navController);
+            });
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -52,12 +75,10 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Đã xóa phần findViewById(R.id.fabSos) vì ID này không tồn tại trong activity_main.xml
-
         if (navController != null) {
             navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
                 int destId = destination.getId();
-                // Ẩn Toolbar khi ở màn hình Bản đồ để có trải nghiệm toàn màn hình
+                // Tự động ẩn toolbar ở map, hiện ở các màn khác
                 if (destId == R.id.navigation_map) {
                     appBarLayout.setVisibility(View.GONE);
                 } else {
