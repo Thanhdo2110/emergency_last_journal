@@ -5,12 +5,13 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 import com.bumptech.glide.Glide;
 import com.example.emergencylastjournal.data.db.AppDatabase;
 import com.example.emergencylastjournal.data.entity.GpsLogEntity;
@@ -33,8 +34,9 @@ public class HistoryDetailFragment extends Fragment implements OnMapReadyCallbac
     private MapView mapView;
     private GoogleMap googleMap;
     private int sessionId;
-    private TextView tvRoute, tvTime, tvStatus;
+    private TextView tvRoute, tvTime, tvStatus, tvNote;
     private ImageView ivPhoto;
+    private ImageButton btnBack;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -52,7 +54,11 @@ public class HistoryDetailFragment extends Fragment implements OnMapReadyCallbac
         tvRoute = view.findViewById(R.id.tvDetailRoute);
         tvTime = view.findViewById(R.id.tvDetailTime);
         tvStatus = view.findViewById(R.id.tvDetailStatus);
+        tvNote = view.findViewById(R.id.tvDetailNote);
         ivPhoto = view.findViewById(R.id.ivDetailPhoto);
+        btnBack = view.findViewById(R.id.btnBack);
+
+        btnBack.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
 
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
@@ -71,6 +77,13 @@ public class HistoryDetailFragment extends Fragment implements OnMapReadyCallbac
                     SimpleDateFormat sdf = new SimpleDateFormat("HH:mm - dd/MM/yyyy", Locale.getDefault());
                     tvTime.setText("Bắt đầu: " + sdf.format(new Date(session.startedAt)));
                     tvStatus.setText("Trạng thái kết thúc: " + (session.outcome != null ? session.outcome : "Hoàn thành"));
+                    
+                    // Hiển thị ghi chú nếu có (Sử dụng trường route làm ví dụ hoặc route_note nếu bạn đã thêm)
+                    if (session.route != null && !session.route.isEmpty()) {
+                        tvNote.setText("Ghi chú: " + session.route);
+                    } else {
+                        tvNote.setText("Ghi chú: Không có ghi chú");
+                    }
                     
                     if (session.photoPath != null) {
                         Glide.with(this).load(session.photoPath).into(ivPhoto);

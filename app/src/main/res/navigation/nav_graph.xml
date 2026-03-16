@@ -37,7 +37,13 @@
         android:id="@+id/navigation_history"
         android:name="com.example.emergencylastjournal.HistoryFragment"
         android:label="@string/history"
-        tools:layout="@layout/fragment_history" />
+        tools:layout="@layout/fragment_history">
+        <action
+            android:id="@+id/action_history_to_historyDetail"
+            app:destination="@id/navigation_history_detail"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_profile"
@@ -56,5 +62,15 @@
         android:name="com.example.emergencylastjournal.ContactsFragment"
         android:label="@string/trusted_contacts"
         tools:layout="@layout/fragment_contacts" />
+
+    <fragment
+        android:id="@+id/navigation_history_detail"
+        android:name="com.example.emergencylastjournal.HistoryDetailFragment"
+        android:label="Chi tiết lộ trình"
+        tools:layout="@layout/fragment_history_detail">
+        <argument
+            android:name="SESSION_ID"
+            app:argType="integer" />
+    </fragment>
 
 </navigation>
