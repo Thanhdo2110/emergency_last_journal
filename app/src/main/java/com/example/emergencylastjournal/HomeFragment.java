@@ -18,6 +18,7 @@ import java.util.Locale;
 public class HomeFragment extends Fragment {
     private TextView tvStatus, tvTimerH, tvTimerM, tvTimerS;
     private MaterialCardView statusBadge;
+    private View homeRootLayout;
 
     @Nullable
     @Override
@@ -29,6 +30,7 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
+        homeRootLayout = view.findViewById(R.id.homeRootLayout);
         tvStatus = view.findViewById(R.id.tvStatus);
         statusBadge = view.findViewById(R.id.statusBadge);
         tvTimerH = view.findViewById(R.id.tvTimerH);
@@ -91,25 +93,37 @@ public class HomeFragment extends Fragment {
     }
 
     private void updateUIByState(SessionState state) {
-        if (tvStatus == null || statusBadge == null) return;
+        if (tvStatus == null || statusBadge == null || homeRootLayout == null) return;
+
+        int statusColor;
+        int bgColor;
+        String statusText;
 
         switch (state) {
             case ACTIVE:
-                tvStatus.setText("TRẠNG THÁI: ĐANG THEO DÕI");
-                statusBadge.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.primary));
+                statusText = "TRẠNG THÁI: ĐANG THEO DÕI";
+                statusColor = ContextCompat.getColor(requireContext(), R.color.primary);
+                bgColor = ContextCompat.getColor(requireContext(), R.color.primary_bg);
                 break;
             case WARNING:
-                tvStatus.setText("CẢNH BÁO: CÒN DƯỚI 5 PHÚT!");
-                statusBadge.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.history_orange));
+                statusText = "CẢNH BÁO: CÒN DƯỚI 5 PHÚT!";
+                statusColor = ContextCompat.getColor(requireContext(), R.color.history_orange);
+                bgColor = ContextCompat.getColor(requireContext(), R.color.history_orange_bg);
                 break;
             case URGENT:
-                tvStatus.setText("CẤP BÁCH: ĐANG GỬI THÔNG TIN!");
-                statusBadge.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.alert_red));
+                statusText = "CẤP BÁCH: ĐANG GỬI THÔNG TIN!";
+                statusColor = ContextCompat.getColor(requireContext(), R.color.alert_red);
+                bgColor = ContextCompat.getColor(requireContext(), R.color.alert_red_bg);
                 break;
             default:
-                tvStatus.setText(getString(R.string.status_safe));
-                statusBadge.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.status_green));
+                statusText = getString(R.string.status_safe);
+                statusColor = ContextCompat.getColor(requireContext(), R.color.status_green);
+                bgColor = ContextCompat.getColor(requireContext(), R.color.bg_status_green_alpha);
                 break;
         }
+
+        tvStatus.setText(statusText);
+        statusBadge.setCardBackgroundColor(statusColor);
+        homeRootLayout.setBackgroundColor(bgColor);
     }
 }

@@ -58,12 +58,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="ĐÍNH KÈM THỰC TẾ (GIỐNG ZALO)"
+            android:letterSpacing="0.1"
+            android:text="MÁY ẢNH VÀ VỊ TRÍ"
+            android:textAllCaps="true"
             android:textColor="@color/white"
             android:textSize="12sp"
-            android:textStyle="bold"
-            android:textAllCaps="true"
-            android:letterSpacing="0.1"/>
+            android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"

@@ -20,6 +20,7 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.emergencylastjournal.MainActivity;
 import com.example.emergencylastjournal.data.db.AppDatabase;
 import com.example.emergencylastjournal.data.entity.GpsLogEntity;
+import com.example.emergencylastjournal.data.entity.SessionEntity;
 import com.example.emergencylastjournal.data.entity.SessionState;
 import com.example.emergencylastjournal.util.LocationHelper;
 import com.example.emergencylastjournal.util.SmsHelper;
@@ -118,6 +119,7 @@ public class TrackingForegroundService extends Service {
                         }
                         if (!isUrgentSmsSent) {
                             isUrgentSmsSent = true;
+                            updateSessionOutcome("emergency"); // Cập nhật trạng thái Nguy hiểm khi bắt đầu gửi SOS
                             SmsHelper.sendEmergencyAlert(TrackingForegroundService.this, currentSessionId);
                         }
                         showSpecialNotification(NOTIF_ID_URGENT, "CẤP BÁCH: " + message + ". Đang gửi SOS!");
@@ -138,9 +140,22 @@ public class TrackingForegroundService extends Service {
                 timeLeftSeconds.postValue(0L);
                 currentState.postValue(SessionState.EMERGENCY);
                 showSpecialNotification(NOTIF_ID_URGENT, "HẾT GIỜ! Đã gửi tín hiệu SOS khẩn cấp!");
+                updateSessionOutcome("emergency");
                 SmsHelper.sendEmergencyAlert(TrackingForegroundService.this, currentSessionId);
             }
         }.start();
+    }
+
+    private void updateSessionOutcome(String outcome) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            AppDatabase db = AppDatabase.getInstance(this);
+            SessionEntity session = db.sessionDao().getSessionById(currentSessionId);
+            if (session != null) {
+                session.outcome = outcome;
+                session.endedAt = System.currentTimeMillis();
+                db.sessionDao().update(session);
+            }
+        });
     }
 
     private void showSpecialNotification(int id, String text) {

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.location.Address;
 import android.location.Geocoder;
@@ -210,6 +211,11 @@ public class CreateJournalFragment extends Fragment implements OnMapReadyCallbac
     }
 
     private void checkPermissionsAndStart() {
+        // Cho phép tạo phiên mới bất kể có phiên cũ đang chạy hay không
+        startActualProcess();
+    }
+
+    private void startActualProcess() {
         String[] permissions = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ?
             new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.SEND_SMS} :
             new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.SEND_SMS};
@@ -251,8 +257,10 @@ public class CreateJournalFragment extends Fragment implements OnMapReadyCallbac
         session.photoPath = currentPhotoPath;
         session.latitude = currentLat;
         session.longitude = currentLng;
+        session.outcome = "active"; // Khởi tạo trạng thái là active
 
         repository.insert(session, sessionId -> {
+            // Khi bắt đầu phiên mới, ta sẽ gửi lệnh cho Service khởi động lại với ID mới
             Intent intent = new Intent(requireContext(), TrackingForegroundService.class);
             intent.putExtra("SESSION_ID", sessionId);
             intent.putExtra("DURATION_SECONDS", totalSeconds);
@@ -260,8 +268,7 @@ public class CreateJournalFragment extends Fragment implements OnMapReadyCallbac
             
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
-                    Toast.makeText(requireContext(), "ĐÃ KÍCH HOẠT BẢO VỆ!", Toast.LENGTH_SHORT).show();
-                    // Đảm bảo quay về Home một cách an toàn
+                    Toast.makeText(requireContext(), "ĐÃ KÍCH HOẠT BẢO VỆ MỚI!", Toast.LENGTH_SHORT).show();
                     NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
                     navController.navigate(R.id.navigation_home);
                 });
@@ -270,29 +277,45 @@ public class CreateJournalFragment extends Fragment implements OnMapReadyCallbac
     }
 
     private void setupNumberPicker(NumberPicker picker, int min, int max, int value) {
-        picker.setMinValue(min); picker.setMaxValue(max); picker.setValue(value);
+        picker.setMinValue(min);
+        picker.setMaxValue(max);
+        picker.setValue(value);
+        picker.setWrapSelectorWheel(true);
         try {
-            Field f = picker.getClass().getDeclaredField("mSelectorWheelPaint");
+            Field f = NumberPicker.class.getDeclaredField("mInputText");
             f.setAccessible(true);
-            ((Paint) f.get(picker)).setColor(requireContext().getColor(R.color.white));
-            int count = picker.getChildCount();
-            for (int i = 0; i < count; i++) {
-                View child = picker.getChildAt(i);
-                if (child instanceof EditText) {
-                    ((EditText) child).setTextColor(requireContext().getColor(R.color.white));
-                }
-            }
-            picker.invalidate();
+            EditText inputText = (EditText) f.get(picker);
+            inputText.setFocusable(false);
+            inputText.setClickable(false);
+            inputText.setTextColor(Color.WHITE);
         } catch (Exception ignored) {}
     }
 
     private void updateTimerDisplay() {
-        String time = String.format(Locale.getDefault(), "%02d:%02d:00", npHour.getValue(), npMinute.getValue());
-        tvTimerDisplay.setText(time);
+        tvTimerDisplay.setText(String.format(Locale.getDefault(), "%02dg %02dp", npHour.getValue(), npMinute.getValue()));
     }
 
-    @Override public void onResume() { super.onResume(); if (liteMapView != null) liteMapView.onResume(); }
-    @Override public void onPause() { super.onPause(); if (liteMapView != null) liteMapView.onPause(); }
-    @Override public void onDestroy() { super.onDestroy(); if (liteMapView != null) liteMapView.onDestroy(); }
-    @Override public void onLowMemory() { super.onLowMemory(); if (liteMapView != null) liteMapView.onLowMemory(); }
+    @Override
+    public void onResume() {
+        super.onResume();
+        liteMapView.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        liteMapView.onPause();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        liteMapView.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        liteMapView.onLowMemory();
+    }
 }

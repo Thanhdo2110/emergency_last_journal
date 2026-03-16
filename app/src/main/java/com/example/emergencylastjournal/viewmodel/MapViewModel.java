@@ -34,9 +34,13 @@ public class MapViewModel extends AndroidViewModel {
 
     public void completeSession(SessionEntity session) {
         executorService.execute(() -> {
-            session.outcome = "completed";
-            session.endedAt = System.currentTimeMillis();
-            db.sessionDao().update(session);
+            // Lấy object mới nhất từ DB để tránh dữ liệu cũ đè lên dữ liệu mới
+            SessionEntity currentSession = db.sessionDao().getSessionById(session.id);
+            if (currentSession != null) {
+                currentSession.outcome = "safe"; // Đổi từ completed thành safe
+                currentSession.endedAt = System.currentTimeMillis();
+                db.sessionDao().update(currentSession);
+            }
         });
     }
 }

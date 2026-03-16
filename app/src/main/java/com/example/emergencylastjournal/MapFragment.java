@@ -34,6 +34,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.RoundCap;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,12 +88,17 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private void showSafeBackConfirmDialog() {
         if (getContext() == null) return;
-        new AlertDialog.Builder(requireContext())
+        AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Xác nhận An toàn")
                 .setMessage("Bạn muốn kết thúc bảo vệ?")
-                .setPositiveButton("Xác nhận", (dialog, which) -> finishCurrentSession())
+                .setPositiveButton("Xác nhận", (d, which) -> finishCurrentSession())
                 .setNegativeButton("Hủy", null)
-                .show();
+                .create();
+        dialog.show();
+        
+        // Cường hóa màu chữ để đảm bảo nhìn thấy được trên nền trắng
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#007A8A"));
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#757575"));
     }
 
     private void finishCurrentSession() {

@@ -20,7 +20,8 @@ public interface SessionDao {
     @Query("SELECT * FROM sessions ORDER BY startedAt DESC")
     LiveData<List<SessionEntity>> getAllSessions();
 
-    @Query("SELECT * FROM sessions WHERE outcome IS NULL OR outcome = 'active' LIMIT 1")
+    // Sửa lỗi lấy nhầm phiên cũ: Luôn lấy phiên MỚI NHẤT đang hoạt động
+    @Query("SELECT * FROM sessions WHERE outcome IS NULL OR outcome = 'active' ORDER BY startedAt DESC LIMIT 1")
     LiveData<SessionEntity> getActiveSession();
 
     @Query("SELECT * FROM sessions WHERE id = :sessionId")
