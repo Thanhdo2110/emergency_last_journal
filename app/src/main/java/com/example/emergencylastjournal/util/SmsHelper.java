@@ -13,7 +13,6 @@ public class SmsHelper {
     private static final String TAG = "SmsHelper";
 
     public static void sendEmergencyAlert(Context context, int sessionId) {
-        // Đảm bảo lấy ApplicationContext để tránh rò rỉ bộ nhớ hoặc crash khi Activity bị đóng
         final Context appContext = context.getApplicationContext();
         
         Executors.newSingleThreadExecutor().execute(() -> {
@@ -23,19 +22,21 @@ public class SmsHelper {
                 List<ContactEntity> contacts = db.contactDao().getEmergencyContactsSync();
 
                 if (session == null || contacts == null || contacts.isEmpty()) {
-                    Log.e(TAG, "Không tìm thấy phiên làm việc hoặc danh bạ khẩn cấp.");
+                    Log.e(TAG, "Không tìm thấy dữ liệu SOS.");
                     return;
                 }
 
+                // Luôn lấy vị trí MỚI NHẤT thực tế tại Việt Nam
                 LocationHelper.getLastLocation(appContext, location -> {
                     String locationUrl = "";
                     if (location != null) {
-                        locationUrl = "\n Vị trí: https://maps.google.com/?q=" + location.getLatitude() + "," + location.getLongitude();
+                        // Định dạng link Google Maps chuẩn nhất để chỉ đúng tọa độ
+                        locationUrl = "\n Vị trí thực tế: https://www.google.com/maps/search/?api=1&query=" 
+                                      + location.getLatitude() + "," + location.getLongitude();
                     }
 
-                    String message = "CỨU TÔI VỚI! Tôi đang gặp nguy hiểm. Lộ trình: " + session.route + locationUrl;
+                    String message = "SOS! Tôi gặp nguy hiểm. Lộ trình: " + session.route + locationUrl;
                     
-                    // Sử dụng cách lấy SmsManager an toàn hơn cho mọi phiên bản Android
                     SmsManager smsManager;
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
                         smsManager = appContext.getSystemService(SmsManager.class);
@@ -49,15 +50,15 @@ public class SmsHelper {
                         try {
                             if (contact.phone != null && !contact.phone.isEmpty()) {
                                 smsManager.sendTextMessage(contact.phone, null, message, null, null);
-                                Log.d(TAG, "Đã gửi SMS tới: " + contact.phone);
+                                Log.d(TAG, "Đã gửi SOS tới: " + contact.phone);
                             }
                         } catch (Exception e) {
-                            Log.e(TAG, "Lỗi gửi SMS tới " + contact.phone, e);
+                            Log.e(TAG, "Lỗi gửi SMS: " + contact.phone, e);
                         }
                     }
                 });
             } catch (Exception e) {
-                Log.e(TAG, "Lỗi hệ thống khi gửi SOS", e);
+                Log.e(TAG, "Lỗi hệ thống SOS", e);
             }
         });
     }

@@ -8,7 +8,6 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.navigation.NavController;
-import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
@@ -43,25 +42,8 @@ public class MainActivity extends AppCompatActivity {
         if (navHostFragment != null) {
             navController = navHostFragment.getNavController();
             
-            // Kết nối chuẩn của Google
+            // Kết nối chuẩn và duy nhất để điều hướng mượt mà
             NavigationUI.setupWithNavController(bottomNav, navController);
-
-            // FIX LOGIC: Xử lý khi nhấn vào Tab điều hướng
-            bottomNav.setOnItemSelectedListener(item -> {
-                int itemId = item.getItemId();
-                
-                // Nếu nhấn vào icon, xóa hết các màn hình con để về gốc của Tab đó
-                navController.popBackStack(itemId, false);
-                
-                // Thực hiện chuyển Tab mượt mà
-                NavigationUI.onNavDestinationSelected(item, navController);
-                return true;
-            });
-
-            // Xử lý khi nhấn lại vào chính Tab đang chọn (Reselect)
-            bottomNav.setOnItemReselectedListener(item -> {
-                navController.popBackStack(item.getItemId(), false);
-            });
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -70,15 +52,12 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        findViewById(R.id.fabSos).setOnClickListener(v -> {
-            if (navController != null) {
-                navController.navigate(R.id.navigation_map);
-            }
-        });
+        // Đã xóa phần findViewById(R.id.fabSos) vì ID này không tồn tại trong activity_main.xml
 
         if (navController != null) {
             navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
                 int destId = destination.getId();
+                // Ẩn Toolbar khi ở màn hình Bản đồ để có trải nghiệm toàn màn hình
                 if (destId == R.id.navigation_map) {
                     appBarLayout.setVisibility(View.GONE);
                 } else {

@@ -5,12 +5,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Paint;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,35 +27,69 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import com.bumptech.glide.Glide;
 import com.example.emergencylastjournal.data.entity.SessionEntity;
 import com.example.emergencylastjournal.data.repository.SessionRepository;
 import com.example.emergencylastjournal.service.TrackingForegroundService;
+import com.google.android.gms.location.CurrentLocationRequest;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.textfield.TextInputEditText;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
-public class CreateJournalFragment extends Fragment {
+public class CreateJournalFragment extends Fragment implements OnMapReadyCallback {
+    private static final String TAG = "CreateJournalFragment";
     private SessionRepository repository;
     private TextInputEditText etRoute;
     private NumberPicker npHour, npMinute;
     private TextView tvTimerDisplay;
-    private View rootView; // Lưu trữ view để điều hướng an toàn
+    private View rootView;
+    private MaterialButtonToggleGroup toggleStatusGroup;
+    
+    private ImageView ivCapturedPhoto;
+    private TextView tvLocationCoords, tvLocationTitle;
+    private MapView liteMapView;
+    private GoogleMap liteGoogleMap;
+    private String currentPhotoPath;
+    private Double currentLat, currentLng;
+    private FusedLocationProviderClient fusedLocationClient;
 
     private final ActivityResultLauncher<String[]> permissionLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestMultiplePermissions(),
             result -> {
-                boolean allGranted = true;
-                for (Boolean granted : result.values()) {
-                    if (!granted) {
-                        allGranted = false;
-                        break;
-                    }
-                }
-                if (allGranted) {
+                boolean locationGranted = Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION));
+                boolean smsGranted = Boolean.TRUE.equals(result.get(Manifest.permission.SEND_SMS));
+                
+                if (locationGranted && smsGranted) {
                     executeStartProtection();
                 } else {
-                    Toast.makeText(getContext(), "Ứng dụng cần đủ quyền để bảo vệ bạn!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), "Cần đủ quyền Vị trí và SMS để bảo vệ bạn!", Toast.LENGTH_LONG).show();
+                }
+            }
+    );
+
+    private final ActivityResultLauncher<Uri> takePictureLauncher = registerForActivityResult(
+            new ActivityResultContracts.TakePicture(),
+            success -> {
+                if (success && currentPhotoPath != null) {
+                    Glide.with(this).load(new File(currentPhotoPath)).into(ivCapturedPhoto);
                 }
             }
     );
@@ -56,18 +98,26 @@ public class CreateJournalFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_create_journal, container, false);
+        liteMapView = rootView.findViewById(R.id.liteMapView);
+        liteMapView.onCreate(savedInstanceState);
+        liteMapView.getMapAsync(this);
         return rootView;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        repository = new SessionRepository(requireActivity().getApplication());
+        repository = new SessionRepository(requireContext());
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
         
         etRoute = view.findViewById(R.id.etRouteDetail);
         tvTimerDisplay = view.findViewById(R.id.tvTimerDisplay);
         npHour = view.findViewById(R.id.npHour);
         npMinute = view.findViewById(R.id.npMinute);
+        toggleStatusGroup = view.findViewById(R.id.toggleStatusGroup);
+        ivCapturedPhoto = view.findViewById(R.id.ivCapturedPhoto);
+        tvLocationCoords = view.findViewById(R.id.tvLocationCoords);
+        tvLocationTitle = view.findViewById(R.id.tvLocationTitle);
 
         setupNumberPicker(npHour, 0, 23, 0);
         setupNumberPicker(npMinute, 0, 59, 15);
@@ -76,84 +126,155 @@ public class CreateJournalFragment extends Fragment {
         npHour.setOnValueChangedListener(timeChangeListener);
         npMinute.setOnValueChangedListener(timeChangeListener);
 
+        view.findViewById(R.id.cardCapturePhoto).setOnClickListener(v -> checkCameraPermission());
+        view.findViewById(R.id.cardGetLocation).setOnClickListener(v -> requestLocation());
         view.findViewById(R.id.btnSaveJournal).setOnClickListener(v -> checkPermissionsAndStart());
     }
 
-    private void checkPermissionsAndStart() {
-        String[] permissions;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissions = new String[]{
-                Manifest.permission.ACCESS_FINE_LOCATION, 
-                Manifest.permission.POST_NOTIFICATIONS, 
-                Manifest.permission.SEND_SMS
-            };
-        } else {
-            permissions = new String[]{
-                Manifest.permission.ACCESS_FINE_LOCATION, 
-                Manifest.permission.SEND_SMS
-            };
+    private void requestLocation() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 102);
+            return;
         }
+
+        tvLocationTitle.setText("Đang lấy vị trí...");
+        CurrentLocationRequest request = new CurrentLocationRequest.Builder()
+                .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+                .build();
+
+        fusedLocationClient.getCurrentLocation(request, null).addOnSuccessListener(location -> {
+            if (location != null) {
+                currentLat = location.getLatitude();
+                currentLng = location.getLongitude();
+                updateLocationUI(location);
+            } else {
+                tvLocationTitle.setText("Lỗi định vị");
+            }
+        });
+    }
+
+    private void updateLocationUI(Location location) {
+        LatLng pos = new LatLng(location.getLatitude(), location.getLongitude());
+        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                tvLocationTitle.setText("Vị trí hiện tại");
+                tvLocationCoords.setText(addresses.get(0).getAddressLine(0));
+            }
+        } catch (IOException e) {
+            tvLocationCoords.setText(String.format(Locale.getDefault(), "Tọa độ: %.5f, %.5f", pos.latitude, pos.longitude));
+        }
+
+        liteMapView.setVisibility(View.VISIBLE);
+        if (liteGoogleMap != null) {
+            liteGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 16f));
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                liteGoogleMap.setMyLocationEnabled(true);
+            }
+        }
+    }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap map) {
+        liteGoogleMap = map;
+        liteGoogleMap.getUiSettings().setMapToolbarEnabled(false);
+    }
+
+    private void checkCameraPermission() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.CAMERA}, 101);
+        } else {
+            dispatchTakePictureIntent();
+        }
+    }
+
+    private void dispatchTakePictureIntent() {
+        try {
+            File photoFile = createImageFile();
+            Uri photoURI = FileProvider.getUriForFile(requireContext(),
+                    requireContext().getPackageName() + ".fileprovider",
+                    photoFile);
+            takePictureLauncher.launch(photoURI);
+        } catch (IOException ex) {
+            Toast.makeText(getContext(), "Lỗi camera", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        File storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile("JPEG_" + timeStamp, ".jpg", storageDir);
+        currentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+    private void checkPermissionsAndStart() {
+        String[] permissions = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ?
+            new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.SEND_SMS} :
+            new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.SEND_SMS};
 
         boolean needRequest = false;
         for (String p : permissions) {
             if (ContextCompat.checkSelfPermission(requireContext(), p) != PackageManager.PERMISSION_GRANTED) {
-                needRequest = true;
-                break;
+                needRequest = true; break;
             }
         }
 
-        if (needRequest) {
-            permissionLauncher.launch(permissions);
-        } else {
-            executeStartProtection();
-        }
+        if (needRequest) permissionLauncher.launch(permissions);
+        else executeStartProtection();
     }
 
     private void executeStartProtection() {
-        String route = etRoute.getText().toString();
+        String route = etRoute.getText().toString().trim();
         if (route.isEmpty()) {
-            etRoute.setError("Vui lòng nhập lộ trình");
+            etRoute.setError("Vui lòng nhập lộ trình!");
             return;
         }
 
         int totalSeconds = (npHour.getValue() * 3600) + (npMinute.getValue() * 60);
         if (totalSeconds == 0) {
-            Toast.makeText(getContext(), "Vui lòng chọn thời gian bảo vệ > 0", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Vui lòng chọn thời gian bảo vệ!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Context appContext = requireActivity().getApplicationContext();
+        String status = "safe";
+        int checkedId = toggleStatusGroup.getCheckedButtonId();
+        if (checkedId == R.id.btnTiredState) status = "tired";
+        else if (checkedId == R.id.btnDangerState) status = "danger";
+
         SessionEntity session = new SessionEntity();
         session.route = route;
-        session.status = "active";
+        session.status = status;
         session.timerDuration = totalSeconds;
         session.startedAt = System.currentTimeMillis();
+        session.photoPath = currentPhotoPath;
+        session.latitude = currentLat;
+        session.longitude = currentLng;
 
         repository.insert(session, sessionId -> {
-            Intent serviceIntent = new Intent(appContext, TrackingForegroundService.class);
-            serviceIntent.putExtra("SESSION_ID", sessionId);
-            serviceIntent.putExtra("DURATION_SECONDS", totalSeconds);
-            appContext.startForegroundService(serviceIntent);
-
+            Intent intent = new Intent(requireContext(), TrackingForegroundService.class);
+            intent.putExtra("SESSION_ID", sessionId);
+            intent.putExtra("DURATION_SECONDS", totalSeconds);
+            requireContext().startForegroundService(intent);
+            
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
-                    Toast.makeText(appContext, "BẢO VỆ ĐÃ ĐƯỢC KÍCH HOẠT!", Toast.LENGTH_SHORT).show();
-                    if (isAdded() && rootView != null) {
-                        Navigation.findNavController(rootView).navigate(R.id.navigation_map);
-                    }
+                    Toast.makeText(requireContext(), "ĐÃ KÍCH HOẠT BẢO VỆ!", Toast.LENGTH_SHORT).show();
+                    // Đảm bảo quay về Home một cách an toàn
+                    NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+                    navController.navigate(R.id.navigation_home);
                 });
             }
         });
     }
 
     private void setupNumberPicker(NumberPicker picker, int min, int max, int value) {
-        picker.setMinValue(min);
-        picker.setMaxValue(max);
-        picker.setValue(value);
+        picker.setMinValue(min); picker.setMaxValue(max); picker.setValue(value);
         try {
-            Field selectorWheelPaintField = picker.getClass().getDeclaredField("mSelectorWheelPaint");
-            selectorWheelPaintField.setAccessible(true);
-            ((Paint) selectorWheelPaintField.get(picker)).setColor(requireContext().getColor(R.color.white));
+            Field f = picker.getClass().getDeclaredField("mSelectorWheelPaint");
+            f.setAccessible(true);
+            ((Paint) f.get(picker)).setColor(requireContext().getColor(R.color.white));
             int count = picker.getChildCount();
             for (int i = 0; i < count; i++) {
                 View child = picker.getChildAt(i);
@@ -166,7 +287,12 @@ public class CreateJournalFragment extends Fragment {
     }
 
     private void updateTimerDisplay() {
-        String time = String.format("%02d:%02d:00", npHour.getValue(), npMinute.getValue());
+        String time = String.format(Locale.getDefault(), "%02d:%02d:00", npHour.getValue(), npMinute.getValue());
         tvTimerDisplay.setText(time);
     }
+
+    @Override public void onResume() { super.onResume(); if (liteMapView != null) liteMapView.onResume(); }
+    @Override public void onPause() { super.onPause(); if (liteMapView != null) liteMapView.onPause(); }
+    @Override public void onDestroy() { super.onDestroy(); if (liteMapView != null) liteMapView.onDestroy(); }
+    @Override public void onLowMemory() { super.onLowMemory(); if (liteMapView != null) liteMapView.onLowMemory(); }
 }

@@ -1,6 +1,8 @@
 package com.example.emergencylastjournal;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -11,6 +13,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
@@ -18,11 +21,17 @@ import com.example.emergencylastjournal.data.entity.GpsLogEntity;
 import com.example.emergencylastjournal.data.entity.SessionEntity;
 import com.example.emergencylastjournal.service.TrackingForegroundService;
 import com.example.emergencylastjournal.viewmodel.MapViewModel;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.RoundCap;
 
@@ -35,6 +44,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private MapViewModel viewModel;
     private SessionEntity currentActiveSession;
     private TextView tvActiveTimer;
+    private boolean isFirstFix = true;
+    private Marker userMarker;
+    private FusedLocationProviderClient fusedLocationClient;
 
     @Nullable
     @Override
@@ -51,13 +63,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(MapViewModel.class);
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
 
         view.findViewById(R.id.btnSafeBack).setOnClickListener(v -> showSafeBackConfirmDialog());
-        
-        // Xử lý nút +10 Phút
         view.findViewById(R.id.btnExtendTimer).setOnClickListener(v -> extendProtectionTime());
 
-        // Lắng nghe thời gian thực từ Service
         TrackingForegroundService.timeLeftSeconds.observe(getViewLifecycleOwner(), totalSeconds -> {
             if (totalSeconds != null && tvActiveTimer != null) {
                 long h = totalSeconds / 3600;
@@ -87,13 +97,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private void finishCurrentSession() {
         if (currentActiveSession != null && isAdded()) {
-            // Set thời gian về 0 ngay lập tức trên UI thông qua LiveData
             TrackingForegroundService.timeLeftSeconds.postValue(0L);
-            
-            // Dừng service tracking
             requireContext().stopService(new Intent(requireContext(), TrackingForegroundService.class));
-            
-            // Cập nhật database và chuyển hướng
             viewModel.completeSession(currentActiveSession);
             Toast.makeText(getContext(), "Hoàn thành bảo vệ!", Toast.LENGTH_SHORT).show();
             Navigation.findNavController(requireView()).navigate(R.id.navigation_home);
@@ -103,7 +108,25 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
         googleMap = map;
+        
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) 
+                == PackageManager.PERMISSION_GRANTED) {
+            googleMap.setMyLocationEnabled(true);
+            googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+            
+            // Lấy vị trí ngay lập tức để không bị hiển thị ở Mỹ khi vừa mở map
+            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+                if (location != null && isFirstFix) {
+                    LatLng myPos = new LatLng(location.getLatitude(), location.getLongitude());
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myPos, 16f));
+                }
+            });
+        }
+        
         googleMap.getUiSettings().setZoomControlsEnabled(true);
+        googleMap.getUiSettings().setCompassEnabled(true);
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
+        googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         
         viewModel.getActiveSession().observe(getViewLifecycleOwner(), session -> {
             if (session != null) {
@@ -117,26 +140,49 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         viewModel.getGpsLogs(sessionId).observe(getViewLifecycleOwner(), logs -> {
             if (logs != null && !logs.isEmpty() && googleMap != null) {
                 drawRoute(logs);
+                updateUserMarker(logs.get(logs.size() - 1));
             }
         });
     }
 
     private void drawRoute(List<GpsLogEntity> logs) {
-        if (googleMap == null) return;
-        googleMap.clear();
         List<LatLng> points = new ArrayList<>();
         for (GpsLogEntity log : logs) points.add(new LatLng(log.latitude, log.longitude));
 
         googleMap.addPolyline(new PolylineOptions()
                 .addAll(points)
-                .width(12)
-                .color(Color.RED)
+                .width(15)
+                .color(Color.parseColor("#4285F4"))
                 .geodesic(true)
                 .startCap(new RoundCap())
                 .endCap(new RoundCap()));
+    }
 
-        if (!points.isEmpty()) {
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(points.get(points.size() - 1), 15f));
+    private void updateUserMarker(GpsLogEntity latestLog) {
+        LatLng currentPos = new LatLng(latestLog.latitude, latestLog.longitude);
+        
+        if (userMarker == null) {
+            userMarker = googleMap.addMarker(new MarkerOptions()
+                    .position(currentPos)
+                    .title("Vị trí thực tế")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                    .flat(true)
+                    .anchor(0.5f, 0.5f));
+        } else {
+            userMarker.setPosition(currentPos);
+        }
+
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(currentPos)
+                .zoom(17f)
+                .tilt(45)
+                .build();
+
+        if (isFirstFix) {
+            googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            isFirstFix = false;
+        } else {
+            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 800, null);
         }
     }
 

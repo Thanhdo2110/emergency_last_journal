@@ -38,17 +38,29 @@
             </intent-filter>
         </activity>
 
-        <!-- KHAI BÁO SERVICE TẠI ĐÂY -->
+        <!-- Service declaration -->
         <service
             android:name=".service.TrackingForegroundService"
             android:foregroundServiceType="location"
             android:exported="false" />
 
+        <!-- Receiver declaration -->
         <receiver android:name=".receiver.BootReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <!-- FileProvider for Camera sharing -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
     </application>
 

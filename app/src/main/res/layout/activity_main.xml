@@ -71,17 +71,4 @@
         app:itemIconTint="@color/primary"
         app:itemTextColor="@color/text_secondary_light"/>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabSos"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="@string/sos"
-        android:src="@android:drawable/ic_dialog_alert"
-        app:backgroundTint="@color/primary"
-        app:layout_anchor="@id/bottomNavigation"
-        app:layout_anchorGravity="top|center"
-        app:maxImageSize="32dp"
-        app:tint="@color/white"
-        app:borderWidth="4dp" />
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

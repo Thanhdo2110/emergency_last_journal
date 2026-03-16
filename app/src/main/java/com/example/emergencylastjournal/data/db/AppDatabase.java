@@ -17,7 +17,7 @@ import com.example.emergencylastjournal.data.entity.UserEntity;
 
 /**
  * Main database for the Emergency Journal application.
- * Version 4 adds PhotoDao.
+ * Version 5 adds new fields to SessionEntity.
  */
 @Database(entities = {
         UserEntity.class, 
@@ -25,7 +25,7 @@ import com.example.emergencylastjournal.data.entity.UserEntity;
         ContactEntity.class, 
         PhotoEntity.class, 
         GpsLogEntity.class
-}, version = 4, exportSchema = false)
+}, version = 5, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     private static volatile AppDatabase INSTANCE;
 
