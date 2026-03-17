@@ -28,4 +28,11 @@ public interface ContactDao {
 
     @Query("SELECT * FROM contacts WHERE shareLocation = 1")
     List<ContactEntity> getEmergencyContactsSync();
+
+    // Lệnh để dọn dẹp toàn bộ trạng thái SOS ảo
+    @Query("UPDATE contacts SET sosCount = 0, lastSosMessage = NULL")
+    void resetAllSosStatus();
+    
+    @Query("DELETE FROM contacts WHERE name = 'Người thân mẫu'")
+    void deleteMockContact();
 }

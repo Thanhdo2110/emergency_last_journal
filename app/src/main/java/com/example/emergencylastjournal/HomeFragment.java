@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -71,7 +72,6 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupNavigation(View view) {
-        // Kết nối các nút bấm với Action điều hướng trong NavGraph
         View btnStartNow = view.findViewById(R.id.btnStartNow);
         View btnViewHistory = view.findViewById(R.id.btnViewHistory);
         View btnManageContacts = view.findViewById(R.id.btnManageContacts);
@@ -111,9 +111,14 @@ public class HomeFragment extends Fragment {
                 bgColor = ContextCompat.getColor(requireContext(), R.color.history_orange_bg);
                 break;
             case URGENT:
-                statusText = "CẤP BÁCH: ĐANG GỬI THÔNG TIN!";
+            case EMERGENCY: // Thêm trạng thái Khẩn cấp
+                statusText = "CẢNH BÁO: ĐÃ GỬI SOS!";
                 statusColor = ContextCompat.getColor(requireContext(), R.color.alert_red);
                 bgColor = ContextCompat.getColor(requireContext(), R.color.alert_red_bg);
+                // Hiển thị Toast thông báo ngay lập tức
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "HỆ THỐNG ĐÃ GỬI TIN NHẮN SOS!", Toast.LENGTH_LONG).show();
+                }
                 break;
             default:
                 statusText = getString(R.string.status_safe);

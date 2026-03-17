@@ -7,12 +7,20 @@
         <item name="android:statusBarColor">?android:attr/colorBackground</item>
         <item name="android:windowLightStatusBar">true</item>
 
-        <!-- Fix NumberPicker visibility in Dark Mode -->
-        <item name="android:editTextColor">@color/white</item>
-        <item name="android:textColorPrimary">@color/white</item>
+        <!-- Default colors for the app -->
+        <item name="android:editTextColor">@color/text_dark</item>
+        <item name="android:textColorPrimary">@color/text_dark</item>
+        <item name="android:textColorHint">@color/text_muted</item>
     </style>
 
     <style name="Theme.EmergencyLastJournal" parent="Base.Theme.EmergencyLastJournal" />
+
+    <!-- Theme Overlay cho NumberPicker trên nền tối -->
+    <style name="NumberPickerTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:editTextColor">@color/white</item>
+        <item name="colorControlNormal">@color/white</item>
+    </style>
 
     <style name="ShapeAppearance.EmergencyLastJournal.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
         <item name="cornerSize">12dp</item>

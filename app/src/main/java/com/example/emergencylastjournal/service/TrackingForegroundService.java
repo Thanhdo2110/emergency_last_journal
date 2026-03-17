@@ -47,7 +47,7 @@ public class TrackingForegroundService extends Service {
     private FusedLocationProviderClient locationClient;
     private LocationCallback locationCallback;
     private int currentSessionId;
-    private boolean isUrgentSmsSent = false;
+    private boolean isSosAlreadySent = false; // Cờ đánh dấu đã gửi SOS trong phiên này chưa
     private long currentRemainingMillis = 0;
 
     @Override
@@ -68,13 +68,13 @@ public class TrackingForegroundService extends Service {
 
         if (intent != null) {
             if (ACTION_EXTEND_TIMER.equals(intent.getAction())) {
-                extendTimer(600000); // Cộng thêm 10 phút (600,000 ms)
+                extendTimer(600000); 
             } else {
                 currentSessionId = intent.getIntExtra("SESSION_ID", -1);
                 int durationSeconds = intent.getIntExtra("DURATION_SECONDS", 0);
                 
                 if (durationSeconds > 0) {
-                    isUrgentSmsSent = false;
+                    isSosAlreadySent = false; // Reset cờ cho phiên mới
                     currentState.postValue(SessionState.ACTIVE);
                     startTimer(durationSeconds * 1000L);
                     startLocationTracking();
@@ -88,7 +88,7 @@ public class TrackingForegroundService extends Service {
         long newDuration = currentRemainingMillis + extraMillis;
         if (currentState.getValue() != SessionState.ACTIVE) {
             currentState.postValue(SessionState.ACTIVE);
-            isUrgentSmsSent = false;
+            isSosAlreadySent = false;
         }
         startTimer(newDuration);
         updateMainNotification("Đã gia hạn thêm 10 phút bảo vệ", false);
@@ -106,30 +106,17 @@ public class TrackingForegroundService extends Service {
                 long seconds = millisUntilFinished / 1000;
                 timeLeftSeconds.postValue(seconds);
 
-                // Chỉ thông báo tại các mốc quan trọng: 15, 10, 5, 4, 3, 2, 1 phút
-                if (seconds == 900 || seconds == 600 || seconds == 300 || 
-                    seconds == 240 || seconds == 180 || seconds == 120 || seconds == 60) {
-                    
-                    int minutes = (int) (seconds / 60);
-                    String message = "Thời gian bảo vệ còn lại: " + minutes + " phút";
-
-                    if (seconds == 60) { // 1 phút
-                        if (currentState.getValue() != SessionState.URGENT) {
-                            currentState.postValue(SessionState.URGENT);
-                        }
-                        if (!isUrgentSmsSent) {
-                            isUrgentSmsSent = true;
-                            updateSessionOutcome("emergency"); // Cập nhật trạng thái Nguy hiểm khi bắt đầu gửi SOS
-                            SmsHelper.sendEmergencyAlert(TrackingForegroundService.this, currentSessionId);
-                        }
-                        showSpecialNotification(NOTIF_ID_URGENT, "CẤP BÁCH: " + message + ". Đang gửi SOS!");
-                    } else if (seconds <= 300) { // 5, 4, 3, 2 phút
-                        if (currentState.getValue() != SessionState.WARNING) {
-                            currentState.postValue(SessionState.WARNING);
-                        }
-                        showSpecialNotification(NOTIF_ID_WARNING, "CẢNH BÁO: " + message);
-                    } else { // 15, 10 phút
-                        updateMainNotification(message, false);
+                if (seconds == 60) { // 1 phút - Chỉ cảnh báo người dùng, chưa gửi SMS
+                    if (currentState.getValue() != SessionState.URGENT) {
+                        currentState.postValue(SessionState.URGENT);
+                    }
+                    showSpecialNotification(NOTIF_ID_URGENT, "CẤP BÁCH: Còn 1 phút! Hệ thống sắp gửi SOS!");
+                } else if (seconds <= 300 && seconds > 60) { // 5 phút -> 1 phút
+                    if (currentState.getValue() != SessionState.WARNING) {
+                        currentState.postValue(SessionState.WARNING);
+                    }
+                    if (seconds % 60 == 0) {
+                        showSpecialNotification(NOTIF_ID_WARNING, "CẢNH BÁO: Còn " + (seconds/60) + " phút bảo vệ");
                     }
                 }
             }
@@ -139,9 +126,14 @@ public class TrackingForegroundService extends Service {
                 currentRemainingMillis = 0;
                 timeLeftSeconds.postValue(0L);
                 currentState.postValue(SessionState.EMERGENCY);
-                showSpecialNotification(NOTIF_ID_URGENT, "HẾT GIỜ! Đã gửi tín hiệu SOS khẩn cấp!");
-                updateSessionOutcome("emergency");
-                SmsHelper.sendEmergencyAlert(TrackingForegroundService.this, currentSessionId);
+                
+                // CHỈ GỬI SOS 1 LẦN DUY NHẤT KHI HẾT GIỜ
+                if (!isSosAlreadySent) {
+                    isSosAlreadySent = true;
+                    showSpecialNotification(NOTIF_ID_URGENT, "HẾT GIỜ! Đã gửi tín hiệu SOS khẩn cấp!");
+                    updateSessionOutcome("emergency");
+                    SmsHelper.sendEmergencyAlert(TrackingForegroundService.this, currentSessionId);
+                }
             }
         }.start();
     }

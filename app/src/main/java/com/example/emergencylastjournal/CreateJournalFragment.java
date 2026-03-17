@@ -211,7 +211,6 @@ public class CreateJournalFragment extends Fragment implements OnMapReadyCallbac
     }
 
     private void checkPermissionsAndStart() {
-        // Cho phép tạo phiên mới bất kể có phiên cũ đang chạy hay không
         startActualProcess();
     }
 
@@ -260,7 +259,6 @@ public class CreateJournalFragment extends Fragment implements OnMapReadyCallbac
         session.outcome = "active"; // Khởi tạo trạng thái là active
 
         repository.insert(session, sessionId -> {
-            // Khi bắt đầu phiên mới, ta sẽ gửi lệnh cho Service khởi động lại với ID mới
             Intent intent = new Intent(requireContext(), TrackingForegroundService.class);
             intent.putExtra("SESSION_ID", sessionId);
             intent.putExtra("DURATION_SECONDS", totalSeconds);
@@ -281,14 +279,7 @@ public class CreateJournalFragment extends Fragment implements OnMapReadyCallbac
         picker.setMaxValue(max);
         picker.setValue(value);
         picker.setWrapSelectorWheel(true);
-        try {
-            Field f = NumberPicker.class.getDeclaredField("mInputText");
-            f.setAccessible(true);
-            EditText inputText = (EditText) f.get(picker);
-            inputText.setFocusable(false);
-            inputText.setClickable(false);
-            inputText.setTextColor(Color.WHITE);
-        } catch (Exception ignored) {}
+        // Gỡ bỏ đoạn code thay đổi màu chữ thủ công gây lỗi hiển thị
     }
 
     private void updateTimerDisplay() {

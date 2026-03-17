@@ -15,7 +15,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:text="@string/privacy_title"
+            android:text="Bảo mật &amp; Quyền riêng tư"
             android:textColor="@color/primary"
             android:textSize="12sp"
             android:textStyle="bold"
@@ -42,7 +42,7 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    app:cardBackgroundColor="#1AE60026"
+                    app:cardBackgroundColor="#1A007A8A"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="0dp">
                     <ImageView
@@ -104,7 +104,7 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    app:cardBackgroundColor="#1AE60026"
+                    app:cardBackgroundColor="#1A007A8A"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="0dp">
                     <ImageView
@@ -182,7 +182,7 @@
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        app:cardBackgroundColor="#1AE60026"
+                        app:cardBackgroundColor="#1A007A8A"
                         app:cardCornerRadius="12dp"
                         app:cardElevation="0dp">
                         <ImageView
@@ -216,26 +216,43 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <com.google.android.material.card.MaterialCardView
+                <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    app:cardBackgroundColor="@color/background_light"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="0dp">
-                    <TextView
+                    app:boxBackgroundColor="@color/background_light"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp"
+                    app:boxStrokeWidth="0dp"
+                    app:boxStrokeWidthFocused="0dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etSosMessage"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:padding="12dp"
-                        android:text="\&quot;CỨU TÔI VỚI! Tôi đang gặp nguy hiểm tại [Vị trí của tôi]. Vui lòng gửi trợ giúp ngay lập tức...\&quot;"
-                        android:textColor="@color/text_secondary_light"
-                        android:textSize="13sp"
-                        android:fontStyle="italic"/>
-                </com.google.android.material.card.MaterialCardView>
+                        android:gravity="top"
+                        android:inputType="textMultiLine"
+                        android:minLines="3"
+                        android:text="SOS! Tôi gặp nguy hiểm. Lộ trình của tôi: [Route]"
+                        android:textColor="@color/text_dark"
+                        android:textSize="13sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Lưu ý: Hệ thống sẽ tự động thêm liên kết vị trí thực tế vào cuối tin nhắn."
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp"
+                    android:fontStyle="italic" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSaveProfile"
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginTop="32dp"

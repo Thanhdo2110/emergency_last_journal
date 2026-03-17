@@ -11,4 +11,8 @@ public class ContactEntity {
     public String phone;
     public boolean shareLocation;
     public boolean verified;
+    
+    // Thêm các trường để theo dõi trạng thái SOS
+    public int sosCount = 0;           // Số tin nhắn SOS đã nhận
+    public String lastSosMessage;     // Nội dung tin nhắn SOS gần nhất
 }

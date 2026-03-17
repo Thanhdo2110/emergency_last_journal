@@ -13,10 +13,13 @@ public class SessionEntity {
     public int timerDuration;      // Giây
     public long startedAt;         // Unix timestamp
     public long endedAt;
-    public String outcome;         // "completed" | "emergency" | "manual"
+    public String outcome;         // "safe" | "emergency" | "manual"
     
     // Thêm các trường mới
     public String photoPath;       // Đường dẫn ảnh đính kèm
     public Double latitude;        // Vĩ độ lúc tạo
     public Double longitude;       // Kinh độ lúc tạo
+
+    // Lưu danh sách người thân đã được gửi SOS (định dạng: Tên1, Tên2...)
+    public String notifiedContacts;
 }

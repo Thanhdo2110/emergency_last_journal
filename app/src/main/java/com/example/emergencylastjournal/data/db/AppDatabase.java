@@ -17,7 +17,7 @@ import com.example.emergencylastjournal.data.entity.UserEntity;
 
 /**
  * Main database for the Emergency Journal application.
- * Version 5 adds new fields to SessionEntity.
+ * Version 7 adds SOS tracking fields to ContactEntity.
  */
 @Database(entities = {
         UserEntity.class, 
@@ -25,7 +25,7 @@ import com.example.emergencylastjournal.data.entity.UserEntity;
         ContactEntity.class, 
         PhotoEntity.class, 
         GpsLogEntity.class
-}, version = 5, exportSchema = false)
+}, version = 7, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     private static volatile AppDatabase INSTANCE;
 
