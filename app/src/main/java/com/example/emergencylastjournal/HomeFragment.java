@@ -18,7 +18,7 @@ import java.util.Locale;
 
 public class HomeFragment extends Fragment {
     private TextView tvStatus, tvTimerH, tvTimerM, tvTimerS;
-    private MaterialCardView statusBadge;
+    private MaterialCardView statusBadge, timerCard;
     private View homeRootLayout;
 
     @Nullable
@@ -34,6 +34,7 @@ public class HomeFragment extends Fragment {
         homeRootLayout = view.findViewById(R.id.homeRootLayout);
         tvStatus = view.findViewById(R.id.tvStatus);
         statusBadge = view.findViewById(R.id.statusBadge);
+        timerCard = view.findViewById(R.id.timerCard);
         tvTimerH = view.findViewById(R.id.tvTimerH);
         tvTimerM = view.findViewById(R.id.tvTimerM);
         tvTimerS = view.findViewById(R.id.tvTimerS);
@@ -58,6 +59,17 @@ public class HomeFragment extends Fragment {
                     if (tvTimerS != null) tvTimerS.setText(String.format(Locale.getDefault(), "%02d", s));
                 } else {
                     resetTimerDisplay();
+                }
+            });
+        }
+
+        // Click vào ô thời gian sẽ sang màn hình bản đồ/theo dõi
+        if (timerCard != null) {
+            timerCard.setOnClickListener(v -> {
+                if (TrackingForegroundService.currentState.getValue() != SessionState.IDLE) {
+                    Navigation.findNavController(view).navigate(R.id.navigation_map);
+                } else {
+                    Toast.makeText(getContext(), "Hiện không có phiên bảo vệ nào đang chạy!", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -111,11 +123,10 @@ public class HomeFragment extends Fragment {
                 bgColor = ContextCompat.getColor(requireContext(), R.color.history_orange_bg);
                 break;
             case URGENT:
-            case EMERGENCY: // Thêm trạng thái Khẩn cấp
+            case EMERGENCY:
                 statusText = "CẢNH BÁO: ĐÃ GỬI SOS!";
                 statusColor = ContextCompat.getColor(requireContext(), R.color.alert_red);
                 bgColor = ContextCompat.getColor(requireContext(), R.color.alert_red_bg);
-                // Hiển thị Toast thông báo ngay lập tức
                 if (getContext() != null) {
                     Toast.makeText(getContext(), "HỆ THỐNG ĐÃ GỬI TIN NHẮN SOS!", Toast.LENGTH_LONG).show();
                 }

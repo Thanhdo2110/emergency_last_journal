@@ -1,10 +1,14 @@
 package com.example.emergencylastjournal.util;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.util.Log;
+import androidx.core.content.ContextCompat;
 import com.example.emergencylastjournal.data.db.AppDatabase;
 import com.example.emergencylastjournal.data.entity.ContactEntity;
+import com.example.emergencylastjournal.data.entity.GpsLogEntity;
 import com.example.emergencylastjournal.data.entity.SessionEntity;
 import com.example.emergencylastjournal.data.entity.UserEntity;
 import java.util.List;
@@ -35,63 +39,97 @@ public class EmailHelper {
                 SessionEntity session = db.sessionDao().getSessionById(sessionId);
                 List<ContactEntity> contacts = db.contactDao().getEmergencyContactsSync();
                 UserEntity user = db.userDao().getUserSync();
+                
+                // Lấy tọa độ GPS cuối cùng từ nhật ký di chuyển
+                GpsLogEntity lastGpsLog = db.gpsLogDao().getLastLogForSessionSync(sessionId);
 
                 if (session == null || contacts == null || contacts.isEmpty()) {
-                    Log.d(TAG, "Không tìm thấy phiên hoặc danh bạ khẩn cấp để gửi Email.");
+                    Log.d(TAG, "Không tìm thấy phiên hoặc danh bạ để gửi Email.");
                     return;
                 }
 
-                LocationHelper.getLastLocation(appContext, location -> {
-                    // Chạy việc gửi email trong thread riêng vì LocationHelper callback thường ở Main UI
-                    Executors.newSingleThreadExecutor().execute(() -> {
-                        String emailContent = buildEmailBody(user, session, location);
-                        
-                        for (ContactEntity contact : contacts) {
-                            if (contact.email != null && !contact.email.isEmpty()) {
-                                String subject = "CẢNH BÁO SOS: " + (user != null ? user.name : "Người thân của bạn") + " ĐANG GẶP NGUY HIỂM";
-                                sendMail(contact.email, subject, emailContent);
+                // Kiểm tra quyền trước khi lấy vị trí (theo tham khảo code bạn gửi)
+                if (ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    LocationHelper.getLastLocation(appContext, freshLocation -> {
+                        Executors.newSingleThreadExecutor().execute(() -> {
+                            // Logic ưu tiên vị trí tươi nhất
+                            Location bestLocation = freshLocation;
+                            if (bestLocation == null && lastGpsLog != null) {
+                                bestLocation = new Location("stored");
+                                bestLocation.setLatitude(lastGpsLog.latitude);
+                                bestLocation.setLongitude(lastGpsLog.longitude);
                             }
-                        }
+                            if (bestLocation == null && session.latitude != null) {
+                                bestLocation = new Location("start");
+                                bestLocation.setLatitude(session.latitude);
+                                bestLocation.setLongitude(session.longitude);
+                            }
+
+                            String emailContent = buildEmailBody(user, session, bestLocation);
+                            sendToAllContacts(contacts, user, emailContent);
+                        });
                     });
-                });
+                } else {
+                    // Nếu không có quyền lấy vị trí mới, dùng vị trí cuối trong DB hoặc vị trí bắt đầu
+                    Location bestLocation = null;
+                    if (lastGpsLog != null) {
+                        bestLocation = new Location("stored");
+                        bestLocation.setLatitude(lastGpsLog.latitude);
+                        bestLocation.setLongitude(lastGpsLog.longitude);
+                    } else if (session.latitude != null) {
+                        bestLocation = new Location("start");
+                        bestLocation.setLatitude(session.latitude);
+                        bestLocation.setLongitude(session.longitude);
+                    }
+                    String emailContent = buildEmailBody(user, session, bestLocation);
+                    sendToAllContacts(contacts, user, emailContent);
+                }
             } catch (Exception e) {
-                Log.e(TAG, "Lỗi khi chuẩn bị gửi Email", e);
+                Log.e(TAG, "Lỗi chuẩn bị gửi Email", e);
             }
         });
     }
 
+    private static void sendToAllContacts(List<ContactEntity> contacts, UserEntity user, String content) {
+        for (ContactEntity contact : contacts) {
+            if (contact.email != null && !contact.email.isEmpty()) {
+                String subject = "CẢNH BÁO SOS: " + (user != null ? user.name : "Người thân của bạn") + " ĐANG GẶP NGUY HIỂM";
+                sendMail(contact.email, subject, content);
+            }
+        }
+    }
+
     private static String buildEmailBody(UserEntity user, SessionEntity session, Location location) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<div style='font-family: Arial, sans-serif; border: 2px solid #ff0000; padding: 20px; border-radius: 10px;'>");
-        sb.append("<h2 style='color: #ff0000; text-align: center;'>CẢNH BÁO KHẨN CẤP (SOS)</h2>");
-        sb.append("<p>Chào bạn,</p>");
-        sb.append("<p>Đây là thông báo khẩn cấp từ ứng dụng <b>Emergency Journal</b>.</p>");
+        // Khung viền ngoài màu đỏ giống ảnh mẫu
+        sb.append("<div style='font-family: sans-serif; border: 1px solid #ff0000; padding: 25px; border-radius: 8px; max-width: 600px;'>");
         
-        if (user != null) {
-            sb.append("<p><b>Thông tin người dùng:</b><br>");
-            sb.append("- Họ tên: ").append(user.name).append("<br>");
-            sb.append("- Nhóm máu: ").append(user.bloodType != null ? user.bloodType : "Không rõ").append("<br>");
-            sb.append("- Ghi chú y tế: ").append(user.emergencyNotes != null ? user.emergencyNotes : "Không có").append("</p>");
-        }
+        // Tiêu đề căn giữa
+        sb.append("<h2 style='color: #ff0000; text-align: center; margin-bottom: 25px;'>CẢNH BÁO KHẨN CẤP (SOS)</h2>");
+        
+        sb.append("<p style='margin-bottom: 10px;'>Chào bạn,</p>");
+        sb.append("<p style='margin-bottom: 20px;'>Đây là thông báo khẩn cấp từ ứng dụng <b>Emergency Journal</b>.</p>");
+        
+        // Chi tiết phiên di chuyển
+        sb.append("<p style='margin-bottom: 5px;'><b>Chi tiết phiên di chuyển:</b></p>");
+        sb.append("<p style='margin-top: 0;'>- Lộ trình: ").append(session.route != null ? session.route : "Chưa xác định").append("<br>");
+        sb.append("- Trạng thái cuối: ").append(session.status != null ? session.status : "danger").append("</p>");
 
-        sb.append("<p><b>Chi tiết phiên di chuyển:</b><br>");
-        sb.append("- Lộ trình: ").append(session.route != null ? session.route : "Không xác định").append("<br>");
-        sb.append("- Trạng thái cuối: ").append(session.status).append("</p>");
-
+        // Khối vị trí: Nền hồng nhạt, thanh đỏ bên trái y hệt ảnh bạn gửi
         if (location != null) {
             String mapUrl = "https://www.google.com/maps/search/?api=1&query=" + location.getLatitude() + "," + location.getLongitude();
-            sb.append("<p style='background-color: #fff3f3; padding: 10px; border-left: 5px solid #ff0000;'>");
-            sb.append("<b>VỊ TRÍ HIỆN TẠI:</b><br>");
-            sb.append("Tọa độ: ").append(location.getLatitude()).append(", ").append(location.getLongitude()).append("<br>");
-            sb.append("<a href='").append(mapUrl).append("' style='color: #d32f2f; font-weight: bold;'>XEM TRÊN GOOGLE MAPS</a>");
-            sb.append("</p>");
-        } else if (session.latitude != null && session.longitude != null) {
-            String mapUrl = "https://www.google.com/maps/search/?api=1&query=" + session.latitude + "," + session.longitude;
-            sb.append("<p><b>Vị trí lúc bắt đầu phiên:</b><br>");
-            sb.append("<a href='").append(mapUrl).append("'>Xem vị trí khởi hành</a></p>");
+            sb.append("<div style='background-color: #fff5f5; padding: 15px; border-left: 4px solid #ff0000; margin: 20px 0;'>");
+            sb.append("<p style='margin: 0; font-weight: bold; font-size: 14px;'>VỊ TRÍ HIỆN TẠI:</p>");
+            sb.append("<p style='margin: 5px 0;'>Tọa độ: ").append(location.getLatitude()).append(", ").append(location.getLongitude()).append("</p>");
+            sb.append("<a href='").append(mapUrl).append("' style='color: #ff0000; font-weight: bold; text-decoration: underline; font-size: 13px;'>XEM TRÊN GOOGLE MAPS</a>");
+            sb.append("</div>");
+        } else {
+            sb.append("<p style='color: red; margin: 20px 0;'><i>(Không thể xác định tọa độ hiện tại)</i></p>");
         }
 
-        sb.append("<p style='color: #555; font-size: 12px; margin-top: 20px;'><i>Email này được gửi tự động vì người dùng đã hết thời gian an toàn mà không xác nhận. Hãy liên lạc với họ ngay lập tức.</i></p>");
+        // Chú thích cuối email màu xám, in nghiêng
+        sb.append("<p style='color: #777; font-size: 12px; margin-top: 30px;'><i>Email này được gửi tự động vì người dùng đã hết thời gian an toàn mà không xác nhận. Hãy liên lạc với họ ngay lập tức.</i></p>");
+
         sb.append("</div>");
         
         return sb.toString();
