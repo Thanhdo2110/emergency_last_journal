@@ -9,6 +9,7 @@ public class ContactEntity {
     public int id;
     public String name;
     public String phone;
+    public String email; // Thêm trường email
     public boolean shareLocation;
     public boolean verified;
     

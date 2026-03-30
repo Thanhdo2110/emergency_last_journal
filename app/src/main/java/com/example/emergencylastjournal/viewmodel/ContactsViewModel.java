@@ -36,12 +36,14 @@ public class ContactsViewModel extends AndroidViewModel {
      * 
      * @param name The full name of the contact.
      * @param phone The phone number of the contact.
+     * @param email The email address of the contact.
      */
-    public void addContact(String name, String phone) {
+    public void addContact(String name, String phone, String email) {
         executorService.execute(() -> {
             ContactEntity contact = new ContactEntity();
             contact.name = name;
             contact.phone = phone;
+            contact.email = email;
             contact.shareLocation = true; // Default to true for emergency safety
             contact.verified = true;
             db.contactDao().insert(contact);

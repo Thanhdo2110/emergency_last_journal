@@ -18,6 +18,9 @@ public interface GpsLogDao {
     @Query("SELECT * FROM gps_logs WHERE sessionId = :sessionId ORDER BY recordedAt ASC")
     LiveData<List<GpsLogEntity>> getLogsForSession(int sessionId);
 
+    @Query("SELECT * FROM gps_logs WHERE sessionId = :sessionId ORDER BY recordedAt DESC LIMIT 1")
+    GpsLogEntity getLastLogForSessionSync(int sessionId);
+
     @Query("DELETE FROM gps_logs WHERE sessionId = :sessionId")
     void deleteLogsForSession(int sessionId);
 }

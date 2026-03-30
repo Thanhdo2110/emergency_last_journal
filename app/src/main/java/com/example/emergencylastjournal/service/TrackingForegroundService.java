@@ -23,7 +23,7 @@ import com.example.emergencylastjournal.data.entity.GpsLogEntity;
 import com.example.emergencylastjournal.data.entity.SessionEntity;
 import com.example.emergencylastjournal.data.entity.SessionState;
 import com.example.emergencylastjournal.util.LocationHelper;
-import com.example.emergencylastjournal.util.SmsHelper;
+import com.example.emergencylastjournal.util.EmailHelper;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationResult;
@@ -47,7 +47,7 @@ public class TrackingForegroundService extends Service {
     private FusedLocationProviderClient locationClient;
     private LocationCallback locationCallback;
     private int currentSessionId;
-    private boolean isSosAlreadySent = false; // Cờ đánh dấu đã gửi SOS trong phiên này chưa
+    private boolean isEmailSent = false;
     private long currentRemainingMillis = 0;
 
     @Override
@@ -74,7 +74,7 @@ public class TrackingForegroundService extends Service {
                 int durationSeconds = intent.getIntExtra("DURATION_SECONDS", 0);
                 
                 if (durationSeconds > 0) {
-                    isSosAlreadySent = false; // Reset cờ cho phiên mới
+                    isEmailSent = false;
                     currentState.postValue(SessionState.ACTIVE);
                     startTimer(durationSeconds * 1000L);
                     startLocationTracking();
@@ -88,7 +88,7 @@ public class TrackingForegroundService extends Service {
         long newDuration = currentRemainingMillis + extraMillis;
         if (currentState.getValue() != SessionState.ACTIVE) {
             currentState.postValue(SessionState.ACTIVE);
-            isSosAlreadySent = false;
+            isEmailSent = false;
         }
         startTimer(newDuration);
         updateMainNotification("Đã gia hạn thêm 10 phút bảo vệ", false);
@@ -106,12 +106,12 @@ public class TrackingForegroundService extends Service {
                 long seconds = millisUntilFinished / 1000;
                 timeLeftSeconds.postValue(seconds);
 
-                if (seconds == 60) { // 1 phút - Chỉ cảnh báo người dùng, chưa gửi SMS
+                if (seconds == 60) {
                     if (currentState.getValue() != SessionState.URGENT) {
                         currentState.postValue(SessionState.URGENT);
                     }
-                    showSpecialNotification(NOTIF_ID_URGENT, "CẤP BÁCH: Còn 1 phút! Hệ thống sắp gửi SOS!");
-                } else if (seconds <= 300 && seconds > 60) { // 5 phút -> 1 phút
+                    showSpecialNotification(NOTIF_ID_URGENT, "CẤP BÁCH: Còn 1 phút! Sắp gửi Email cảnh báo!");
+                } else if (seconds <= 300 && seconds > 60) {
                     if (currentState.getValue() != SessionState.WARNING) {
                         currentState.postValue(SessionState.WARNING);
                     }
@@ -127,12 +127,13 @@ public class TrackingForegroundService extends Service {
                 timeLeftSeconds.postValue(0L);
                 currentState.postValue(SessionState.EMERGENCY);
                 
-                // CHỈ GỬI SOS 1 LẦN DUY NHẤT KHI HẾT GIỜ
-                if (!isSosAlreadySent) {
-                    isSosAlreadySent = true;
-                    showSpecialNotification(NOTIF_ID_URGENT, "HẾT GIỜ! Đã gửi tín hiệu SOS khẩn cấp!");
+                if (!isEmailSent) {
+                    isEmailSent = true;
+                    showSpecialNotification(NOTIF_ID_URGENT, "HẾT GIỜ! Đã gửi Email SOS tới người thân!");
                     updateSessionOutcome("emergency");
-                    SmsHelper.sendEmergencyAlert(TrackingForegroundService.this, currentSessionId);
+                    
+                    // CHUYỂN SANG GỬI EMAIL THAY VÌ SMS
+                    EmailHelper.sendEmergencyEmail(TrackingForegroundService.this, currentSessionId);
                 }
             }
         }.start();
@@ -216,9 +217,12 @@ public class TrackingForegroundService extends Service {
 
     private void saveGpsLog(android.location.Location location) {
         Executors.newSingleThreadExecutor().execute(() -> {
-            AppDatabase.getInstance(this).sessionDao().insertGpsLog(
-                    new GpsLogEntity(currentSessionId, location.getLatitude(), location.getLongitude(), System.currentTimeMillis())
-            );
+            AppDatabase db = AppDatabase.getInstance(this);
+            if (db != null) {
+                db.sessionDao().insertGpsLog(
+                        new GpsLogEntity(currentSessionId, location.getLatitude(), location.getLongitude(), System.currentTimeMillis())
+                );
+            }
         });
     }
 

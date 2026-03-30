@@ -85,10 +85,12 @@ public class ContactsFragment extends Fragment {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_contact, null);
         EditText etName = dialogView.findViewById(R.id.etContactName);
         EditText etPhone = dialogView.findViewById(R.id.etContactPhone);
+        EditText etEmail = dialogView.findViewById(R.id.etContactEmail);
 
         if (existingContact != null) {
             etName.setText(existingContact.name);
             etPhone.setText(existingContact.phone);
+            etEmail.setText(existingContact.email);
         }
 
         new MaterialAlertDialogBuilder(requireContext())
@@ -97,16 +99,19 @@ public class ContactsFragment extends Fragment {
                 .setPositiveButton("Lưu", (dialog, which) -> {
                     String name = etName.getText().toString();
                     String phone = etPhone.getText().toString();
-                    if (!name.isEmpty() && !phone.isEmpty()) {
+                    String email = etEmail.getText().toString();
+                    
+                    if (!name.isEmpty() && (!phone.isEmpty() || !email.isEmpty())) {
                         if (existingContact == null) {
-                            viewModel.addContact(name, phone);
+                            viewModel.addContact(name, phone, email);
                         } else {
                             existingContact.name = name;
                             existingContact.phone = phone;
+                            existingContact.email = email;
                             viewModel.updateContact(existingContact);
                         }
                     } else {
-                        Toast.makeText(getContext(), "Vui lòng nhập đủ thông tin", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Vui lòng nhập tên và ít nhất một phương thức liên lạc", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .setNegativeButton("Hủy", null)
