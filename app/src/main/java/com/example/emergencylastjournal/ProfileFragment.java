@@ -58,6 +58,7 @@ public class ProfileFragment extends Fragment {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_personal_info, null);
         TextInputEditText etName = dialogView.findViewById(R.id.etUserName);
         TextInputEditText etBlood = dialogView.findViewById(R.id.etBloodType);
+        TextInputEditText etDob = dialogView.findViewById(R.id.etUserDob);
         TextInputEditText etNotes = dialogView.findViewById(R.id.etMedicalNotes);
 
         // Lấy dữ liệu cũ từ DB
@@ -67,6 +68,7 @@ public class ProfileFragment extends Fragment {
                 getActivity().runOnUiThread(() -> {
                     etName.setText(user.name);
                     etBlood.setText(user.bloodType);
+                    etDob.setText(user.dateOfBirth);
                     etNotes.setText(user.emergencyNotes);
                 });
             }
@@ -79,8 +81,10 @@ public class ProfileFragment extends Fragment {
         dialogView.findViewById(R.id.btnSaveDialog).setOnClickListener(v -> {
             String name = etName.getText().toString().trim();
             String blood = etBlood.getText().toString().trim();
+            String dob = etDob.getText().toString().trim();
             String notes = etNotes.getText().toString().trim();
 
+            // Chỉ bắt buộc tên nếu người dùng muốn lưu thông tin chính thức
             if (name.isEmpty()) {
                 etName.setError("Vui lòng nhập tên");
                 return;
@@ -91,6 +95,7 @@ public class ProfileFragment extends Fragment {
                 user.id = 1;
                 user.name = name;
                 user.bloodType = blood;
+                user.dateOfBirth = dob;
                 user.emergencyNotes = notes;
                 db.userDao().insert(user);
                 

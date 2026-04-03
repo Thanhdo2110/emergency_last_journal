@@ -1,25 +1,40 @@
 package com.example.emergencylastjournal;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import com.example.emergencylastjournal.data.db.AppDatabase;
+import com.example.emergencylastjournal.data.entity.ContactEntity;
 import com.example.emergencylastjournal.data.entity.SessionState;
 import com.example.emergencylastjournal.service.TrackingForegroundService;
+import com.example.emergencylastjournal.util.EmailHelper;
+import com.example.emergencylastjournal.util.SmsHelper;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executors;
 
 public class HomeFragment extends Fragment {
     private TextView tvStatus, tvTimerH, tvTimerM, tvTimerS;
-    private MaterialCardView statusBadge, timerCard;
+    private MaterialCardView statusBadge, timerCard, cardEmergency;
     private View homeRootLayout;
+    
+    // Biến static để theo dõi việc hiển thị thông báo trong phiên chạy app
+    private static boolean hasShownContactWarningThisSession = false;
 
     @Nullable
     @Override
@@ -35,6 +50,7 @@ public class HomeFragment extends Fragment {
         tvStatus = view.findViewById(R.id.tvStatus);
         statusBadge = view.findViewById(R.id.statusBadge);
         timerCard = view.findViewById(R.id.timerCard);
+        cardEmergency = view.findViewById(R.id.cardEmergency);
         tvTimerH = view.findViewById(R.id.tvTimerH);
         tvTimerM = view.findViewById(R.id.tvTimerM);
         tvTimerS = view.findViewById(R.id.tvTimerS);
@@ -74,7 +90,130 @@ public class HomeFragment extends Fragment {
             });
         }
 
+        // Click vào nút Tình trạng cấp bách
+        if (cardEmergency != null) {
+            cardEmergency.setOnClickListener(v -> {
+                checkAndSendEmergency();
+            });
+        }
+
         setupNavigation(view);
+        
+        // Chỉ kiểm tra và hiện thông báo khi lần đầu vào app (trong phiên chạy này)
+        if (!hasShownContactWarningThisSession) {
+            checkContactsOnEntry();
+        }
+    }
+
+    private void checkContactsOnEntry() {
+        Context context = getContext();
+        if (context == null) return;
+        
+        AppDatabase db = AppDatabase.getInstance(context);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            List<ContactEntity> contacts = db.contactDao().getAllContactsSync();
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (contacts == null || contacts.isEmpty()) {
+                    showNoContactsWarning();
+                    hasShownContactWarningThisSession = true; // Đánh dấu đã hiện một lần
+                }
+            });
+        });
+    }
+
+    private void showNoContactsWarning() {
+        if (!isAdded()) return;
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Cần thiết lập danh bạ")
+                .setMessage("Bạn chưa thêm bất kỳ người thân nào vào danh bạ SOS. Để hệ thống có thể hoạt động hiệu quả, vui lòng thêm ít nhất một người thân ngay bây giờ.")
+                .setCancelable(false)
+                .setPositiveButton("Thêm ngay", (dialog, which) -> {
+                    try {
+                        NavController navController = Navigation.findNavController(requireView());
+                        navController.navigate(R.id.action_home_to_contacts);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                })
+                .setNegativeButton("Để sau", (dialog, which) -> {
+                    // Người dùng chọn để sau, không làm gì cả, biến flag đã được set để không hiện lại
+                })
+                .show();
+    }
+
+    private void checkAndSendEmergency() {
+        Context context = getContext();
+        if (context == null) return;
+
+        AppDatabase db = AppDatabase.getInstance(context);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            List<ContactEntity> contacts = db.contactDao().getEmergencyContactsSync();
+            
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (contacts == null || contacts.isEmpty()) {
+                    Toast.makeText(context, "Chưa có danh bạ người thân để gửi SOS!", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                // Kiểm tra xem có người thân nào có email chưa
+                boolean hasEmail = false;
+                for (ContactEntity contact : contacts) {
+                    if (contact.email != null && !contact.email.isEmpty()) {
+                        hasEmail = true;
+                        break;
+                    }
+                }
+
+                if (!hasEmail) {
+                    // Yêu cầu nhập email cho người thân đầu tiên
+                    showEmailInputDialog(contacts.get(0));
+                } else {
+                    performEmergencyActions();
+                }
+            });
+        });
+    }
+
+    private void showEmailInputDialog(ContactEntity contact) {
+        EditText etEmail = new EditText(getContext());
+        etEmail.setHint("Email người thân (ví dụ: abc@gmail.com)");
+        etEmail.setPadding(60, 40, 60, 40);
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Cần thiết lập Email SOS")
+                .setMessage("Bạn chưa thiết lập email cho người thân (" + contact.name + "). Vui lòng nhập email để gửi thông báo SOS:")
+                .setView(etEmail)
+                .setCancelable(false)
+                .setPositiveButton("Gửi SOS", (dialog, which) -> {
+                    String email = etEmail.getText().toString().trim();
+                    if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                        Toast.makeText(getContext(), "Email không hợp lệ!", Toast.LENGTH_SHORT).show();
+                        showEmailInputDialog(contact); // Hiện lại dialog nếu sai
+                    } else {
+                        // Cập nhật email vào DB và gửi SOS
+                        updateContactEmailAndSend(contact, email);
+                    }
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void updateContactEmailAndSend(ContactEntity contact, String email) {
+        contact.email = email;
+        Executors.newSingleThreadExecutor().execute(() -> {
+            AppDatabase.getInstance(requireContext()).contactDao().update(contact);
+            new Handler(Looper.getMainLooper()).post(this::performEmergencyActions);
+        });
+    }
+
+    private void performEmergencyActions() {
+        Toast.makeText(getContext(), "Đang gửi tín hiệu SOS khẩn cấp (SMS & Email)...", Toast.LENGTH_SHORT).show();
+        
+        // Gửi SMS
+        SmsHelper.sendEmergencyAlert(requireContext(), -1);
+        
+        // Gửi Email
+        EmailHelper.sendEmergencyEmail(requireContext(), -1);
     }
 
     private void resetTimerDisplay() {
@@ -105,7 +244,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void updateUIByState(SessionState state) {
-        if (tvStatus == null || statusBadge == null || homeRootLayout == null) return;
+        if (!isAdded() || tvStatus == null || statusBadge == null || homeRootLayout == null) return;
 
         int statusColor;
         int bgColor;

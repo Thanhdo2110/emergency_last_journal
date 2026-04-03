@@ -19,7 +19,7 @@ public class SmsHelper {
     private static final String PREF_NAME = "sos_settings";
     private static final String KEY_SOS_MESSAGE = "sos_message";
     
-    private static final String DEFAULT_TEMPLATE = "SOS! Toi gap nguy hiem .Hinh anh cua toi : [Photo] . Vi tri cua toi : [Location]";
+    private static final String DEFAULT_TEMPLATE = "SOS! Toi gap nguy hiem. Vi tri cua toi : [Location]";
 
     public static void sendEmergencyAlert(Context context, int sessionId) {
         final Context appContext = context.getApplicationContext();
@@ -27,41 +27,48 @@ public class SmsHelper {
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
                 AppDatabase db = AppDatabase.getInstance(appContext);
-                SessionEntity session = db.sessionDao().getSessionById(sessionId);
                 List<ContactEntity> contacts = db.contactDao().getEmergencyContactsSync();
 
-                if (session == null || contacts == null || contacts.isEmpty()) {
+                if (contacts == null || contacts.isEmpty()) {
                     Log.e(TAG, "Không có người thân nào để gửi SOS.");
+                    new Handler(Looper.getMainLooper()).post(() -> 
+                        Toast.makeText(appContext, "Chưa có danh bạ người thân để gửi SOS!", Toast.LENGTH_LONG).show()
+                    );
                     return;
                 }
 
-                // Cập nhật người đã được thông báo vào phiên nhật ký
-                String names = contacts.stream().map(c -> c.name).collect(Collectors.joining(", "));
-                db.sessionDao().updateNotifiedContacts(sessionId, names);
+                SessionEntity sessionTemp = null;
+                if (sessionId != -1) {
+                    sessionTemp = db.sessionDao().getSessionById(sessionId);
+                    if (sessionTemp != null) {
+                        String names = contacts.stream().map(c -> c.name).collect(Collectors.joining(", "));
+                        db.sessionDao().updateNotifiedContacts(sessionId, names);
+                    }
+                }
+                final SessionEntity session = sessionTemp;
 
                 SharedPreferences prefs = appContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
                 String template = prefs.getString(KEY_SOS_MESSAGE, DEFAULT_TEMPLATE);
 
-                String savedLocationUrl = "Chưa có dữ liệu";
-                if (session.latitude != null && session.longitude != null) {
-                    savedLocationUrl = "https://www.google.com/maps/search/?api=1&query=" 
-                                      + session.latitude + "," + session.longitude;
-                }
-                String photoInfo = (session.photoPath != null) ? "Đã chụp và lưu trong Nhật ký" : "Không có";
-
-                String finalBaseMessage = template
-                        .replace("[Photo]", photoInfo)
-                        .replace("[Location]", savedLocationUrl);
+                String photoInfo = (session != null && session.photoPath != null) ? "Đã chụp và lưu trong Nhật ký" : "Không có";
+                
+                final String baseTemplate = template.replace("[Photo]", photoInfo);
 
                 // Lấy vị trí thực tế và thực hiện gửi
                 LocationHelper.getLastLocation(appContext, location -> {
-                    // PHẢI CHẠY TRONG LUỒNG NỀN ĐỂ CẬP NHẬT DB
                     Executors.newSingleThreadExecutor().execute(() -> {
-                        String fullSms = finalBaseMessage;
+                        String fullSms = baseTemplate;
+                        String locationUrl = "Không xác định";
+                        
                         if (location != null) {
-                            fullSms += " . Vị trí hiện tại: https://www.google.com/maps/search/?api=1&query=" 
+                            locationUrl = "https://www.google.com/maps/search/?api=1&query=" 
                                        + location.getLatitude() + "," + location.getLongitude();
+                        } else if (session != null && session.latitude != null) {
+                            locationUrl = "https://www.google.com/maps/search/?api=1&query=" 
+                                       + session.latitude + "," + session.longitude;
                         }
+                        
+                        fullSms = fullSms.replace("[Location]", locationUrl);
 
                         SmsManager smsManager;
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
@@ -77,21 +84,19 @@ public class SmsHelper {
                                 if (contact.phone != null && !contact.phone.isEmpty()) {
                                     smsManager.sendTextMessage(contact.phone, null, fullSms, null, null);
                                     
-                                    // CẬP NHẬT DATABASE TẠI ĐÂY (ĐÃ AN TOÀN TRONG LUỒNG NỀN)
                                     contact.sosCount++;
                                     contact.lastSosMessage = fullSms;
                                     db.contactDao().update(contact);
                                     
-                                    Log.d(TAG, "Đã lưu trạng thái SOS cho: " + contact.name);
+                                    Log.d(TAG, "Đã gửi SMS SOS cho: " + contact.name);
                                 }
                             } catch (Exception e) {
-                                Log.e(TAG, "Lỗi khi xử lý người thân: " + contact.name, e);
+                                Log.e(TAG, "Lỗi khi gửi SMS cho: " + contact.name, e);
                             }
                         }
                         
-                        // Thông báo cho người dùng trên UI
                         new Handler(Looper.getMainLooper()).post(() -> 
-                            Toast.makeText(appContext, "Hệ thống đã gửi SOS thành công!", Toast.LENGTH_LONG).show()
+                            Toast.makeText(appContext, "Hệ thống đã gửi SMS SOS thành công!", Toast.LENGTH_LONG).show()
                         );
                     });
                 });

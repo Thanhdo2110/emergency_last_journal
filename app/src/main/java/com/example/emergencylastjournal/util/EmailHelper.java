@@ -36,19 +36,19 @@ public class EmailHelper {
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
                 AppDatabase db = AppDatabase.getInstance(appContext);
-                SessionEntity session = db.sessionDao().getSessionById(sessionId);
+                SessionEntity session = (sessionId != -1) ? db.sessionDao().getSessionById(sessionId) : null;
                 List<ContactEntity> contacts = db.contactDao().getEmergencyContactsSync();
                 UserEntity user = db.userDao().getUserSync();
                 
-                // Lấy tọa độ GPS cuối cùng từ nhật ký di chuyển
-                GpsLogEntity lastGpsLog = db.gpsLogDao().getLastLogForSessionSync(sessionId);
+                // Lấy tọa độ GPS cuối cùng từ nhật ký di chuyển (nếu có session)
+                GpsLogEntity lastGpsLog = (sessionId != -1) ? db.gpsLogDao().getLastLogForSessionSync(sessionId) : null;
 
-                if (session == null || contacts == null || contacts.isEmpty()) {
-                    Log.d(TAG, "Không tìm thấy phiên hoặc danh bạ để gửi Email.");
+                if (contacts == null || contacts.isEmpty()) {
+                    Log.d(TAG, "Không tìm thấy danh bạ để gửi Email.");
                     return;
                 }
 
-                // Kiểm tra quyền trước khi lấy vị trí (theo tham khảo code bạn gửi)
+                // Kiểm tra quyền trước khi lấy vị trí
                 if (ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                     LocationHelper.getLastLocation(appContext, freshLocation -> {
                         Executors.newSingleThreadExecutor().execute(() -> {
@@ -59,7 +59,7 @@ public class EmailHelper {
                                 bestLocation.setLatitude(lastGpsLog.latitude);
                                 bestLocation.setLongitude(lastGpsLog.longitude);
                             }
-                            if (bestLocation == null && session.latitude != null) {
+                            if (bestLocation == null && session != null && session.latitude != null) {
                                 bestLocation = new Location("start");
                                 bestLocation.setLatitude(session.latitude);
                                 bestLocation.setLongitude(session.longitude);
@@ -76,7 +76,7 @@ public class EmailHelper {
                         bestLocation = new Location("stored");
                         bestLocation.setLatitude(lastGpsLog.latitude);
                         bestLocation.setLongitude(lastGpsLog.longitude);
-                    } else if (session.latitude != null) {
+                    } else if (session != null && session.latitude != null) {
                         bestLocation = new Location("start");
                         bestLocation.setLatitude(session.latitude);
                         bestLocation.setLongitude(session.longitude);
@@ -101,34 +101,52 @@ public class EmailHelper {
 
     private static String buildEmailBody(UserEntity user, SessionEntity session, Location location) {
         StringBuilder sb = new StringBuilder();
-        // Khung viền ngoài màu đỏ giống ảnh mẫu
-        sb.append("<div style='font-family: sans-serif; border: 1px solid #ff0000; padding: 25px; border-radius: 8px; max-width: 600px;'>");
+        // Khung viền ngoài màu đỏ đậm
+        sb.append("<div style='font-family: Arial, sans-serif; border: 3px solid #ff0000; padding: 30px; border-radius: 12px; max-width: 600px; margin: auto;'>");
         
-        // Tiêu đề căn giữa
-        sb.append("<h2 style='color: #ff0000; text-align: center; margin-bottom: 25px;'>CẢNH BÁO KHẨN CẤP (SOS)</h2>");
+        // Tiêu đề lớn, nổi bật
+        sb.append("<h1 style='color: #ff0000; text-align: center; text-transform: uppercase; margin-bottom: 30px; font-size: 26px;'>CẢNH BÁO SOS KHẨN CẤP</h1>");
         
-        sb.append("<p style='margin-bottom: 10px;'>Chào bạn,</p>");
-        sb.append("<p style='margin-bottom: 20px;'>Đây là thông báo khẩn cấp từ ứng dụng <b>Emergency Journal</b>.</p>");
+        sb.append("<p style='font-size: 16px;'>Chào bạn,</p>");
+        sb.append("<p style='font-size: 16px; line-height: 1.5;'>Người thân của bạn đang gửi tín hiệu cầu cứu khẩn cấp từ ứng dụng <b>Emergency Journal</b>.</p>");
         
-        // Chi tiết phiên di chuyển
-        sb.append("<p style='margin-bottom: 5px;'><b>Chi tiết phiên di chuyển:</b></p>");
-        sb.append("<p style='margin-top: 0;'>- Lộ trình: ").append(session.route != null ? session.route : "Chưa xác định").append("<br>");
-        sb.append("- Trạng thái cuối: ").append(session.status != null ? session.status : "danger").append("</p>");
+        // Khối thông tin người dùng - Chuyên nghiệp hơn
+        sb.append("<div style='background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; margin: 25px 0;'>");
+        sb.append("<h3 style='margin-top: 0; color: #d32f2f; border-bottom: 2px solid #ff0000; padding-bottom: 8px; display: inline-block;'>THÔNG TIN NGƯỜI CẦN TRỢ GIÚP</h3>");
+        sb.append("<table style='width: 100%; font-size: 16px; margin-top: 10px;'>");
+        sb.append("<tr><td style='width: 40%; font-weight: bold; padding: 5px 0;'>Họ và tên:</td><td>").append(user != null ? user.name : "N/A").append("</td></tr>");
+        sb.append("<tr><td style='font-weight: bold; padding: 5px 0;'>Ngày sinh:</td><td>").append(user != null && user.dateOfBirth != null ? user.dateOfBirth : "N/A").append("</td></tr>");
+        sb.append("<tr><td style='font-weight: bold; padding: 5px 0;'>Nhóm máu:</td><td>").append(user != null && user.bloodType != null ? user.bloodType : "N/A").append("</td></tr>");
+        sb.append("</table>");
+        sb.append("</div>");
 
-        // Khối vị trí: Nền hồng nhạt, thanh đỏ bên trái y hệt ảnh bạn gửi
+        // KHỐI VỊ TRÍ - LÀM CỰC KỲ NỔI BẬT VỚI NÚT ĐỎ LỚN
+        sb.append("<div style='background-color: #fff5f5; padding: 25px; border: 2px solid #ff4d4d; border-radius: 10px; margin: 25px 0; text-align: center;'>");
+        sb.append("<h3 style='margin-top: 0; color: #ff0000; text-transform: uppercase;'>VỊ TRÍ KHẨN CẤP HIỆN TẠI</h3>");
+        
         if (location != null) {
             String mapUrl = "https://www.google.com/maps/search/?api=1&query=" + location.getLatitude() + "," + location.getLongitude();
-            sb.append("<div style='background-color: #fff5f5; padding: 15px; border-left: 4px solid #ff0000; margin: 20px 0;'>");
-            sb.append("<p style='margin: 0; font-weight: bold; font-size: 14px;'>VỊ TRÍ HIỆN TẠI:</p>");
-            sb.append("<p style='margin: 5px 0;'>Tọa độ: ").append(location.getLatitude()).append(", ").append(location.getLongitude()).append("</p>");
-            sb.append("<a href='").append(mapUrl).append("' style='color: #ff0000; font-weight: bold; text-decoration: underline; font-size: 13px;'>XEM TRÊN GOOGLE MAPS</a>");
+            sb.append("<p style='font-size: 20px; margin: 15px 0; color: #333;'><b>Tọa độ:</b> ").append(location.getLatitude()).append(", ").append(location.getLongitude()).append("</p>");
+            sb.append("<div style='margin-top: 25px;'>");
+            sb.append("<a href='").append(mapUrl).append("' style='background-color: #ff0000; color: #ffffff; padding: 18px 30px; text-decoration: none; font-weight: bold; font-size: 18px; border-radius: 8px; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.2);'>XEM VỊ TRÍ TRÊN BẢN ĐỒ</a>");
             sb.append("</div>");
+            sb.append("<p style='font-size: 13px; color: #666; margin-top: 20px;'><i>(Nhấn vào nút đỏ phía trên để mở Google Maps và tìm đường đến cứu giúp)</i></p>");
         } else {
-            sb.append("<p style='color: red; margin: 20px 0;'><i>(Không thể xác định tọa độ hiện tại)</i></p>");
+            sb.append("<p style='color: #d32f2f; font-weight: bold; font-size: 18px; margin: 15px 0;'>KHÔNG XÁC ĐỊNH ĐƯỢC TỌA ĐỘ CHÍNH XÁC</p>");
+            sb.append("<p style='font-size: 14px; color: #333;'>Hệ thống hiện không thể lấy được vị trí GPS. Hãy cố gắng liên lạc với người thân ngay lập tức.</p>");
+        }
+        sb.append("</div>");
+
+        if (session != null) {
+            sb.append("<div style='padding: 15px; border-top: 1px solid #eee; background-color: #fffaf0;'>");
+            sb.append("<p style='margin: 5px 0;'><b>Lộ trình dự kiến:</b> ").append(session.route != null ? session.route : "Chưa xác định").append("</p>");
+            sb.append("</div>");
         }
 
-        // Chú thích cuối email màu xám, in nghiêng
-        sb.append("<p style='color: #777; font-size: 12px; margin-top: 30px;'><i>Email này được gửi tự động vì người dùng đã hết thời gian an toàn mà không xác nhận. Hãy liên lạc với họ ngay lập tức.</i></p>");
+        // Chú thích cuối email
+        sb.append("<p style='color: #777; font-size: 13px; margin-top: 35px; border-top: 2px solid #eee; padding-top: 20px; line-height: 1.4;'>");
+        sb.append("<i>Email này được gửi tự động từ hệ thống cứu hộ của Emergency Journal. Hãy hành động ngay để giúp đỡ người thân của bạn.</i>");
+        sb.append("</p>");
 
         sb.append("</div>");
         

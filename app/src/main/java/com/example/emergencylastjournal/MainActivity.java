@@ -2,6 +2,7 @@ package com.example.emergencylastjournal;
 
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -57,19 +58,34 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        // Xử lý Insets thông minh: Không dùng padding cho toàn bộ layout nữa
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            // Chỉ áp dụng padding trên để tránh Toolbar bị lấp bởi status bar
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
+            
+            // Áp dụng padding dưới RIÊNG cho BottomNav để hiện chữ mà không tạo khoảng trắng thừa
+            if (bottomNav != null) {
+                bottomNav.setPadding(0, 0, 0, systemBars.bottom);
+            }
             return insets;
         });
 
         if (navController != null) {
             navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
                 int destId = destination.getId();
-                if (destId == R.id.navigation_map) {
+                
+                if (destId == R.id.navigation_welcome) {
                     appBarLayout.setVisibility(View.GONE);
-                } else {
+                    bottomNav.setVisibility(View.GONE);
+                } 
+                else if (destId == R.id.navigation_map) {
+                    appBarLayout.setVisibility(View.GONE);
+                    bottomNav.setVisibility(View.VISIBLE);
+                } 
+                else {
                     appBarLayout.setVisibility(View.VISIBLE);
+                    bottomNav.setVisibility(View.VISIBLE);
                     toolbar.setTitle(destination.getLabel());
                 }
             });

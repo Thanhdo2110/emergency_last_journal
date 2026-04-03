@@ -129,7 +129,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             });
         }
         
-        googleMap.getUiSettings().setZoomControlsEnabled(true);
+        // TẮT ZOOM CONTROLS ĐỂ TRÁNH CHE MẤT NÚT CỦA BẠN
+        googleMap.getUiSettings().setZoomControlsEnabled(false);
         googleMap.getUiSettings().setCompassEnabled(true);
         googleMap.getUiSettings().setMapToolbarEnabled(false);
         googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);

@@ -60,17 +60,20 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:navGraph="@navigation/nav_graph" />
 
-    <!-- Tách riêng Bottom Nav để tránh lỗi click -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="@color/white"
+        android:minHeight="80dp"
         app:elevation="16dp"
         app:labelVisibilityMode="labeled"
         app:menu="@menu/bottom_nav_menu"
-        app:itemIconTint="@color/primary"
-        app:itemTextColor="@color/text_secondary_light"/>
+        app:itemIconTint="@color/bottom_nav_color_selector"
+        app:itemTextColor="@color/bottom_nav_color_selector"
+        app:itemTextAppearanceActive="@style/TextAppearance.Material3.LabelSmall"
+        app:itemTextAppearanceInactive="@style/TextAppearance.Material3.LabelSmall"
+        app:itemHorizontalTranslationEnabled="false"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

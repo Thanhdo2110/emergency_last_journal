@@ -42,9 +42,8 @@ public class ContactAdapter extends ListAdapter<ContactEntity, ContactAdapter.Vi
 
         @Override
         public boolean areContentsTheSame(@NonNull ContactEntity oldItem, @NonNull ContactEntity newItem) {
-            // QUAN TRỌNG: Phải so sánh cả sosCount để Adapter tự động cập nhật UI khi có tin nhắn mới
             return oldItem.name.equals(newItem.name) && 
-                   oldItem.phone.equals(newItem.phone) && 
+                   (oldItem.email == null ? newItem.email == null : oldItem.email.equals(newItem.email)) && 
                    oldItem.shareLocation == newItem.shareLocation &&
                    oldItem.sosCount == newItem.sosCount &&
                    (oldItem.lastSosMessage == null ? newItem.lastSosMessage == null : oldItem.lastSosMessage.equals(newItem.lastSosMessage));
@@ -64,7 +63,7 @@ public class ContactAdapter extends ListAdapter<ContactEntity, ContactAdapter.Vi
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        private final TextView tvName, tvPhone, tvSosStatusCount, btnViewSosDetail;
+        private final TextView tvName, tvEmail, tvSosStatusCount, btnViewSosDetail;
         private final MaterialSwitch swLocation;
         private final ImageButton btnEdit, btnDelete;
         private final LinearLayout layoutSosStatus;
@@ -72,7 +71,7 @@ public class ContactAdapter extends ListAdapter<ContactEntity, ContactAdapter.Vi
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tvContactName);
-            tvPhone = itemView.findViewById(R.id.tvContactPhone);
+            tvEmail = itemView.findViewById(R.id.tvContactEmail);
             swLocation = itemView.findViewById(R.id.switchShareLocation);
             btnEdit = itemView.findViewById(R.id.btnEditContact);
             btnDelete = itemView.findViewById(R.id.btnDeleteContact);
@@ -83,10 +82,9 @@ public class ContactAdapter extends ListAdapter<ContactEntity, ContactAdapter.Vi
 
         public void bind(ContactEntity contact, OnContactActionListener listener) {
             tvName.setText(contact.name);
-            tvPhone.setText(contact.phone);
+            tvEmail.setText(contact.email != null ? contact.email : "Chưa có email");
             swLocation.setChecked(contact.shareLocation);
 
-            // LOGIC LINH ĐỘNG: Chỉ hiện thanh thông báo nếu số lượng SOS > 0
             if (contact.sosCount > 0) {
                 layoutSosStatus.setVisibility(View.VISIBLE);
                 tvSosStatusCount.setText("Đã gửi " + contact.sosCount + " tin nhắn SOS");

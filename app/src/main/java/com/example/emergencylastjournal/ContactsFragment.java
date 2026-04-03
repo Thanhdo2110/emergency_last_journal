@@ -84,12 +84,10 @@ public class ContactsFragment extends Fragment {
     private void showContactDialog(@Nullable ContactEntity existingContact) {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_contact, null);
         EditText etName = dialogView.findViewById(R.id.etContactName);
-        EditText etPhone = dialogView.findViewById(R.id.etContactPhone);
         EditText etEmail = dialogView.findViewById(R.id.etContactEmail);
 
         if (existingContact != null) {
             etName.setText(existingContact.name);
-            etPhone.setText(existingContact.phone);
             etEmail.setText(existingContact.email);
         }
 
@@ -97,21 +95,21 @@ public class ContactsFragment extends Fragment {
                 .setTitle(existingContact == null ? "Thêm người thân" : "Sửa thông tin")
                 .setView(dialogView)
                 .setPositiveButton("Lưu", (dialog, which) -> {
-                    String name = etName.getText().toString();
-                    String phone = etPhone.getText().toString();
-                    String email = etEmail.getText().toString();
+                    String name = etName.getText().toString().trim();
+                    String email = etEmail.getText().toString().trim();
                     
-                    if (!name.isEmpty() && (!phone.isEmpty() || !email.isEmpty())) {
+                    if (!name.isEmpty() && !email.isEmpty()) {
                         if (existingContact == null) {
-                            viewModel.addContact(name, phone, email);
+                            // Phone is set to empty string as we removed it from UI
+                            viewModel.addContact(name, "", email);
                         } else {
                             existingContact.name = name;
-                            existingContact.phone = phone;
                             existingContact.email = email;
+                            existingContact.phone = ""; // Clear phone if updating
                             viewModel.updateContact(existingContact);
                         }
                     } else {
-                        Toast.makeText(getContext(), "Vui lòng nhập tên và ít nhất một phương thức liên lạc", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Vui lòng nhập đầy đủ tên và email", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .setNegativeButton("Hủy", null)
