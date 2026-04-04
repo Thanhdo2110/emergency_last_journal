@@ -22,15 +22,16 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Quay lại"
+            android:contentDescription="@string/back"
             android:src="@android:drawable/ic_menu_revert"
             app:tint="@color/text_primary_light" />
 
         <TextView
+            android:id="@+id/tvDetailTitleHeader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="Chi tiết nhật ký"
+            android:text="@string/history_detail_title"
             android:textColor="@color/text_primary_light"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -53,9 +54,10 @@
 
             <!-- Coordinate Section -->
             <TextView
+                android:id="@+id/tvLabelEventLoc"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Vị trí sự kiện (Tọa độ)"
+                android:text="@string/event_location_label"
                 android:textColor="@color/text_primary_light"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -97,15 +99,16 @@
                             android:id="@+id/tvCoordinates"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Chưa có dữ liệu vị trí"
+                            android:text="@string/no_location_data"
                             android:textColor="@color/text_primary_light"
                             android:textSize="16sp"
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvTapToViewMap"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Nhấn để xem trên bản đồ"
+                            android:text="@string/tap_to_view_map"
                             android:textColor="@color/alert_red"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -123,7 +126,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Tình trạng cấp bách"
+                android:text="@string/urgent_condition"
                 android:textColor="@color/text_primary_light"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -152,7 +155,7 @@
                 android:layout_marginTop="16dp"
                 android:background="@drawable/bg_note_light"
                 android:padding="12dp"
-                android:text="Ghi chú: SOS khẩn cấp được kích hoạt trực tiếp."
+                android:text="@string/emergency_triggered_msg"
                 android:textColor="@color/text_primary_light"
                 android:textSize="14sp"
                 android:fontFamily="sans-serif-light" />
@@ -162,7 +165,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Hình ảnh nhật ký"
+                android:text="@string/journal_photo_label"
                 android:textColor="@color/text_primary_light"
                 android:textSize="14sp"
                 android:textStyle="bold"

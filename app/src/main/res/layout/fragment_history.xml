@@ -64,7 +64,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tất cả"
+                android:text="@string/filter_all"
                 android:checked="true"/>
 
             <com.google.android.material.chip.Chip
@@ -72,28 +72,28 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="An toàn" />
+                android:text="@string/filter_safe" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipDanger"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Nguy hiểm" />
+                android:text="@string/filter_danger" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipEmergency"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Khẩn cấp" />
+                android:text="@string/filter_emergency" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipRunning"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Đang chạy" />
+                android:text="@string/filter_running" />
 
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>

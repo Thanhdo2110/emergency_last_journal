@@ -14,23 +14,17 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.emergencylastjournal.data.entity.SessionEntity;
 import com.example.emergencylastjournal.ui.history.HistoryAdapter;
 import com.example.emergencylastjournal.viewmodel.HistoryViewModel;
+import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
-
-import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class HistoryFragment extends Fragment {
     private HistoryViewModel viewModel;
     private HistoryAdapter adapter;
-    private List<SessionEntity> fullList = new ArrayList<>();
-    private String currentSearchQuery = "";
-    private String currentFilter = "all";
+    private RecyclerView rvHistory;
+    private EditText etSearch;
+    private ChipGroup chipGroupFilter;
 
     @Nullable
     @Override
@@ -42,91 +36,64 @@ public class HistoryFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
-
-        RecyclerView rvHistory = view.findViewById(R.id.rvHistory);
-        EditText etSearch = view.findViewById(R.id.etSearchHistory);
-        ChipGroup chipGroup = view.findViewById(R.id.chipGroupFilter);
-
-        rvHistory.setLayoutManager(new LinearLayoutManager(getContext()));
         
+        rvHistory = view.findViewById(R.id.rvHistory);
+        etSearch = view.findViewById(R.id.etSearchHistory);
+        chipGroupFilter = view.findViewById(R.id.chipGroupFilter);
+
+        setupRecyclerView();
+        setupFilters();
+        setupSearch();
+        observeViewModel();
+        
+        // Cập nhật text cho các Chip từ Resource để hỗ trợ đa ngôn ngữ
+        updateChipTexts();
+    }
+
+    private void updateChipTexts() {
+        if (getView() == null) return;
+        ((Chip)getView().findViewById(R.id.chipAll)).setText(R.string.filter_all);
+        ((Chip)getView().findViewById(R.id.chipSafe)).setText(R.string.filter_safe);
+        ((Chip)getView().findViewById(R.id.chipDanger)).setText(R.string.filter_danger);
+        ((Chip)getView().findViewById(R.id.chipEmergency)).setText(R.string.filter_emergency);
+        ((Chip)getView().findViewById(R.id.chipRunning)).setText(R.string.filter_running);
+    }
+
+    private void setupRecyclerView() {
         adapter = new HistoryAdapter(session -> {
             Bundle bundle = new Bundle();
             bundle.putInt("SESSION_ID", session.id);
-            Navigation.findNavController(view).navigate(R.id.action_history_to_historyDetail, bundle);
+            Navigation.findNavController(requireView()).navigate(R.id.action_history_to_historyDetail, bundle);
         });
+        rvHistory.setLayoutManager(new LinearLayoutManager(getContext()));
         rvHistory.setAdapter(adapter);
+    }
 
-        // Lắng nghe dữ liệu
-        viewModel.getAllSessions().observe(getViewLifecycleOwner(), sessions -> {
-            if (sessions != null) {
-                fullList = sessions;
-                applyFilterAndSearch();
-                rvHistory.setVisibility(View.VISIBLE);
-            }
+    private void setupFilters() {
+        chipGroupFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds.isEmpty()) return;
+            int id = checkedIds.get(0);
+            if (id == R.id.chipAll) viewModel.setFilter("all");
+            else if (id == R.id.chipSafe) viewModel.setFilter("safe");
+            else if (id == R.id.chipDanger) viewModel.setFilter("danger");
+            else if (id == R.id.chipEmergency) viewModel.setFilter("emergency");
+            else if (id == R.id.chipRunning) viewModel.setFilter("running");
         });
+    }
 
-        // Xử lý tìm kiếm
+    private void setupSearch() {
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
-            @Override
-            public void afterTextChanged(Editable s) {
-                currentSearchQuery = removeAccent(s.toString().toLowerCase().trim());
-                applyFilterAndSearch();
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                viewModel.setSearchQuery(s.toString());
             }
-        });
-
-        // Xử lý lọc theo Chip
-        chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
-            if (checkedIds.isEmpty()) {
-                currentFilter = "all";
-            } else {
-                int id = checkedIds.get(0);
-                if (id == R.id.chipSafe) currentFilter = "safe";
-                else if (id == R.id.chipDanger) currentFilter = "danger";
-                else if (id == R.id.chipEmergency) currentFilter = "emergency";
-                else if (id == R.id.chipRunning) currentFilter = "active";
-                else currentFilter = "all";
-            }
-            applyFilterAndSearch();
+            @Override public void afterTextChanged(Editable s) {}
         });
     }
 
-    private void applyFilterAndSearch() {
-        if (fullList == null) return;
-
-        List<SessionEntity> filteredList = fullList.stream()
-            .filter(session -> {
-                // Lọc theo trạng thái kết quả
-                boolean matchFilter = true;
-                String outcome = session.outcome != null ? session.outcome : "active";
-                
-                if (!currentFilter.equals("all")) {
-                    if (currentFilter.equals("safe")) {
-                        matchFilter = "safe".equals(outcome) || "manual".equals(outcome);
-                    } else {
-                        matchFilter = currentFilter.equals(outcome);
-                    }
-                }
-                
-                // Lọc theo từ khóa tìm kiếm (lộ trình) - Đã bỏ dấu
-                boolean matchSearch = true;
-                if (!currentSearchQuery.isEmpty()) {
-                    String routeUnaccented = removeAccent(session.route != null ? session.route.toLowerCase() : "");
-                    matchSearch = routeUnaccented.contains(currentSearchQuery);
-                }
-                
-                return matchFilter && matchSearch;
-            })
-            .collect(Collectors.toList());
-
-        adapter.submitList(filteredList);
-    }
-
-    // Hàm loại bỏ dấu tiếng Việt
-    private String removeAccent(String s) {
-        String temp = Normalizer.normalize(s, Normalizer.Form.NFD);
-        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
-        return pattern.matcher(temp).replaceAll("").replace('đ', 'd').replace('Đ', 'D');
+    private void observeViewModel() {
+        viewModel.getFilteredSessions().observe(getViewLifecycleOwner(), sessions -> {
+            adapter.submitList(sessions);
+        });
     }
 }

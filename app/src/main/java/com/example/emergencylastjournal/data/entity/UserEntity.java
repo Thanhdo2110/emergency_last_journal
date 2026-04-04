@@ -13,6 +13,7 @@ public class UserEntity {
 
     public String name;
     public String bloodType;
-    public String dateOfBirth; // New field
-    public String emergencyNotes; // Medical conditions, etc.
+    public String dateOfBirth;
+    public String emergencyNotes;
+    public String language; // "Vietnam" or "English"
 }

@@ -22,7 +22,6 @@ import com.google.android.material.card.MaterialCardView;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 
@@ -64,13 +63,21 @@ public class HistoryDetailFragment extends Fragment {
             if (lastLat != null && lastLng != null) {
                 openGoogleMaps(lastLat, lastLng);
             } else {
-                Toast.makeText(getContext(), "Không có dữ liệu tọa độ", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.no_location_data), Toast.LENGTH_SHORT).show();
             }
         });
 
         loadSessionDetails();
         loadLastCoordinates();
+        updateStaticTexts(view);
         return view;
+    }
+
+    private void updateStaticTexts(View view) {
+        ((TextView)view.findViewById(R.id.tvLabelEventLoc)).setText(R.string.event_location_label);
+        ((TextView)view.findViewById(R.id.tvTapToViewMap)).setText(R.string.tap_to_view_map);
+        ((TextView)view.findViewById(R.id.tvDetailTitleHeader)).setText(R.string.history_detail_title);
+        btnBack.setContentDescription(getString(R.string.back));
     }
 
     private void loadSessionDetails() {
@@ -80,28 +87,30 @@ public class HistoryDetailFragment extends Fragment {
             
             if (getActivity() != null && session != null) {
                 getActivity().runOnUiThread(() -> {
-                    tvRoute.setText(session.route != null && !session.route.isEmpty() ? session.route : "SOS Khẩn cấp");
+                    tvRoute.setText(session.route != null && !session.route.isEmpty() ? session.route : getString(R.string.emergency_status_msg));
                     SimpleDateFormat sdf = new SimpleDateFormat("HH:mm - dd/MM/yyyy", Locale.getDefault());
-                    tvTime.setText("Thời gian: " + sdf.format(new Date(session.startedAt)));
+                    tvTime.setText(getString(R.string.time_label, sdf.format(new Date(session.startedAt))));
                     
-                    String outcomeText = "Hoàn thành";
+                    String outcomeText = getString(R.string.filter_success);
                     if (session.outcome != null) {
                         switch (session.outcome) {
-                            case "safe": outcomeText = "An toàn"; break;
-                            case "emergency": outcomeText = "Khẩn cấp (SOS)"; break;
-                            case "manual": outcomeText = "Người dùng tự ngắt"; break;
-                            case "active": outcomeText = "Đang diễn ra"; break;
+                            case "safe": outcomeText = getString(R.string.filter_safe); break;
+                            case "emergency": outcomeText = getString(R.string.filter_emergency); break;
+                            case "manual": outcomeText = getString(R.string.back_to_safe); break;
+                            case "active": outcomeText = getString(R.string.filter_running); break;
                         }
                     }
-                    tvStatus.setText("Trạng thái: " + outcomeText);
+                    tvStatus.setText(getString(R.string.status_label, outcomeText));
                     
                     if (session.route != null && !session.route.isEmpty()) {
-                        tvNote.setText("Ghi chú: " + session.route);
+                        tvNote.setText(getString(R.string.journal_note_label, session.route));
                     } else {
-                        tvNote.setText("Ghi chú: SOS khẩn cấp được kích hoạt trực tiếp.");
+                        tvNote.setText(getString(R.string.journal_note_label, getString(R.string.emergency_triggered_msg)));
                     }
 
-                    // Hiển thị ảnh nếu có (chỉ dành cho Nhật ký có hẹn giờ)
+                    tvLabelPhoto.setText(R.string.journal_photo_label);
+
+                    // Hiển thị ảnh nếu có
                     if (session.photoPath != null && !session.photoPath.isEmpty()) {
                         File imgFile = new File(session.photoPath);
                         if (imgFile.exists()) {
@@ -146,7 +155,7 @@ public class HistoryDetailFragment extends Fragment {
                     if (lastLat != null && lastLng != null) {
                         tvCoordinates.setText(String.format(Locale.getDefault(), "%.6f, %.6f", lastLat, lastLng));
                     } else {
-                        tvCoordinates.setText("Không xác định được tọa độ");
+                        tvCoordinates.setText(R.string.no_location_data);
                     }
                 });
             }

@@ -1,0 +1,211 @@
+<resources>
+    <string name="app_name">Emergency Journal</string>
+    <string name="home">Home</string>
+    <string name="map">Map</string>
+    <string name="history">History</string>
+    <string name="profile">Profile</string>
+    <string name="sos">Emergency (SOS)</string>
+    <string name="settings">Settings</string>
+    <string name="account">Account</string>
+
+    <string name="status_safe">Status: Safe</string>
+    <string name="status_tracking">STATUS: TRACKING</string>
+    <string name="status_warning">WARNING: CONFIRM SAFETY!</string>
+
+    <string name="device_protected">Your device is protected</string>
+    <string name="timer_remaining">PROTECTION TIME REMAINING</string>
+
+    <string name="create_journal">Create Journal &amp; Timer</string>
+    <string name="start_session">Start new protection session immediately</string>
+    <string name="view_history">View History</string>
+    <string name="history_desc">Review previous routes</string>
+    <string name="trusted_contacts">Trusted Contacts</string>
+    <string name="contacts_desc">Manage alert recipients</string>
+
+    <string name="route_details">Route Details</string>
+    <string name="current_status">Current Status</string>
+    <string name="safety_timer">Safety Timer</string>
+    <string name="evidence_photo">Take Evidence Photo</string>
+    <string name="add_photo">ADD PHOTO</string>
+    <string name="save_and_activate">SAVE and ACTIVATE</string>
+
+    <string name="search_history">Search history...</string>
+    <string name="filter_all">All</string>
+    <string name="filter_success">Success</string>
+    <string name="filter_warning">Warning</string>
+
+    <string name="contact_header">Emergency Contacts</string>
+    <string name="contact_sub">These people will receive emergency notifications and your location.</string>
+    <string name="privacy_title">Privacy</string>
+    <string name="privacy_desc">You can disable location access for anyone at any time.</string>
+    <string name="add_contact">Add Contact</string>
+    <string name="edit_contact">Edit Contact</string>
+    <string name="delete_contact">Delete Contact</string>
+    <string name="delete_confirm_msg">Are you sure you want to delete %1$s?</string>
+    <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="contact_name_hint">Contact Name</string>
+    <string name="email_address_hint">Email Address</string>
+    <string name="error_fill_all">Please enter both name and email</string>
+
+    <string name="no_email">No email provided</string>
+    <string name="sos_messages_sent">Sent %1$d SOS messages</string>
+    <string name="view_detail_caps">VIEW DETAILS</string>
+    <string name="sos_message_content">SOS Message Content</string>
+    <string name="last_sos_msg_to">Latest message sent to %1$s:\n\n</string>
+    <string name="no_sos_data">Data is being updated...</string>
+    <string name="close">Close</string>
+
+    <!-- History Detail -->
+    <string name="history_detail_title">Journal Details</string>
+    <string name="event_location_label">Event Location (Coordinates)</string>
+    <string name="no_location_data">No location data</string>
+    <string name="tap_to_view_map">Tap to view on map</string>
+    <string name="time_label">Time: %1$s</string>
+    <string name="status_label">Status: %1$s</string>
+    <string name="journal_note_label">Note: %1$s</string>
+    <string name="journal_photo_label">Journal Image</string>
+    <string name="back">Back</string>
+    <string name="emergency_triggered_msg">Emergency SOS triggered directly.</string>
+    <string name="no_route_description">No route description</string>
+
+    <!-- Profile & Survival -->
+    <string name="language_dialog_title">Select Language</string>
+    <string name="about_app_title">Our Mission</string>
+    <string name="about_app_message">"✨ Emergency Last Journal is not just an application, but a promise of safety.\n\n❤️ Born from the hearts of those who wish no one to be alone in adversity, we created this tool with the hope that you 'will never have to use it'. But if the moment of destiny strikes, the application will be a silent gatekeeper, the voice when you cannot speak, and the thread connecting you with loved ones through every survival coordinate.\n\n🌟 Every line of code is written with respect for the value of life. We believe that saving one person is saving a whole world. Thank you for trusting us to accompany you on every road."</string>
+    <string name="survival_handbook_title">Survival Handbook Details</string>
+
+    <!-- Navigation Labels -->
+    <string name="welcome_label">Welcome</string>
+    <string name="create_journal_label">Create Journal</string>
+    <string name="history_detail_label">Route Details</string>
+
+    <!-- Messages -->
+    <string name="selected_language">Selected: %1$s</string>
+    <string name="error_required">Required</string>
+
+    <!-- Home UI Strings -->
+    <string name="urgent_condition">URGENT CONDITION</string>
+    <string name="send_sos_now">Send SOS to relatives immediately</string>
+    <string name="start_now">Start Now</string>
+    <string name="manage">Manage</string>
+    <string name="open_journal">Open Journal</string>
+    <string name="no_active_session">No active protection session!</string>
+    <string name="need_setup_contacts">Setup Contacts Required</string>
+    <string name="no_contacts_msg">You haven\'t added any emergency contacts. For the system to work effectively, please add at least one relative now.</string>
+    <string name="add_now">Add Now</string>
+    <string name="later">Later</string>
+    <string name="no_contacts_sos_msg">No emergency contacts found to send SOS!</string>
+    <string name="setup_email_sos">Setup SOS Email Required</string>
+    <string name="input_email_msg">You haven\'t set up an email for your relative (%1$s). Please enter an email to send SOS notification:</string>
+    <string name="send_sos">Send SOS</string>
+    <string name="invalid_email">Invalid email!</string>
+    <string name="determining_location">Determining location and sending SOS...</string>
+    <string name="sos_sent_msg">SYSTEM HAS SENT SOS MESSAGE!</string>
+    <string name="emergency_status_msg">WARNING: SOS SENT!</string>
+    <string name="warning_status_msg">WARNING: LESS THAN 5 MINUTES LEFT!</string>
+
+    <!-- Welcome Screen -->
+    <string name="welcome_title">Welcome!</string>
+    <string name="welcome_desc">Please set up basic information to be best supported in emergencies.</string>
+    <string name="full_name_hint">Full Name</string>
+    <string name="blood_type_hint">Blood Type (A, B, O, AB...)</string>
+    <string name="dob_hint">Date of Birth (day/month/year)</string>
+
+    <!-- Create Journal Screen -->
+    <string name="route_details_title">ROUTE DETAILS</string>
+    <string name="route_hint">Where are you going? E.g.: Going home, trekking...</string>
+    <string name="camera_location_title">CAMERA AND LOCATION</string>
+    <string name="capture_photo_title">Capture scene photo</string>
+    <string name="capture_photo_desc">Tap to take a real photo</string>
+    <string name="send_location_title">Send current location</string>
+    <string name="location_unknown">Location unknown</string>
+    <string name="current_status_title">CURRENT STATUS</string>
+    <string name="status_safe_short">Safe</string>
+    <string name="status_tired_short">Tired</string>
+    <string name="status_danger_short">Danger</string>
+    <string name="safety_timer_title">SAFETY TIMER</string>
+    <string name="start_protection">START PROTECTION</string>
+
+    <!-- Profile Screen -->
+    <string name="info_app_section">Info &amp; Application</string>
+    <string name="about_app_card_title">About Emergency Last Journal</string>
+    <string name="about_app_card_desc">Mission and message from developer</string>
+    <string name="personal_info_card_title">Personal Information</string>
+    <string name="personal_info_card_desc">Update name, blood type and contacts</string>
+    <string name="language_card_title">Language / Ngôn ngữ</string>
+    <string name="support_knowledge_section">Support &amp; Knowledge</string>
+    <string name="survival_handbook_card_title">Survival Handbook</string>
+    <string name="survival_handbook_card_desc">Skills for woods, fire, disasters...</string>
+    <string name="app_version">Version 2.4.0 (Build 82)</string>
+
+    <!-- Map Screen -->
+    <string name="extend_10_mins">+10 Mins</string>
+    <string name="back_to_safe">Back to safe</string>
+    <string name="extend_toast">Added 10 more minutes of protection</string>
+    <string name="finish_protection_toast">Protection completed!</string>
+    <string name="safe_back_confirm_title">Confirm Safety</string>
+    <string name="safe_back_confirm_msg">Do you want to end protection?</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="actual_location">Actual location</string>
+
+    <!-- History Screen -->
+    <string name="filter_safe">Safe</string>
+    <string name="filter_danger">Danger</string>
+    <string name="filter_emergency">Emergency</string>
+    <string name="filter_running">Running</string>
+
+    <!-- Notifications -->
+    <string name="notif_tracking_active">Safety tracking active...</string>
+    <string name="notif_extended_10_mins">Extended protection by 10 minutes</string>
+    <string name="notif_urgent_1min">URGENT: 1 minute left! Sending SOS Email soon!</string>
+    <string name="notif_warning_remaining">WARNING: %1$d minutes of protection remaining</string>
+    <string name="notif_timeout_sos_sent">TIME OUT! SOS Email sent to relatives!</string>
+
+    <!-- Email SOS -->
+    <string name="email_subject_sos">SOS ALERT: %1$s IS IN DANGER</string>
+    <string name="email_header_sos">URGENT SOS ALERT</string>
+    <string name="email_info_title">INFORMATION OF PERSON IN NEED:</string>
+    <string name="email_full_name">Full name:</string>
+    <string name="email_dob">Date of birth:</string>
+    <string name="email_blood_type">Blood type:</string>
+    <string name="email_location_title">EMERGENCY LOCATION</string>
+    <string name="email_coordinates">Coordinates:</string>
+    <string name="email_open_maps">OPEN GOOGLE MAPS NOW</string>
+    <string name="email_location_unknown">EXACT COORDINATES UNKNOWN</string>
+    <string name="email_evidence_title">SCENE IMAGE:</string>
+    <string name="email_route">Route:</string>
+    <string name="email_footer">Take action immediately to help your relative.</string>
+    <string name="email_unknown_relative">Your relative</string>
+    <string name="email_not_available">N/A</string>
+    <string name="email_route_not_available">Unknown</string>
+
+    <string-array name="survival_topics">
+        <item>Lost in the Woods (S.T.O.P)</item>
+        <item>House/High-rise Fire (R.A.C.E)</item>
+        <item>Lost/Disoriented</item>
+        <item>Flood/Rising Water</item>
+        <item>Tsunami/Tidal Surge</item>
+        <item>Earthquake/Structural Collapse</item>
+        <item>Storm/Tornado</item>
+        <item>Sunstroke/Heatstroke</item>
+        <item>Electric Shock</item>
+        <item>First Aid: CPR</item>
+        <item>First Aid: Acute Bleeding</item>
+    </string-array>
+
+    <string-array name="survival_contents">
+        <item>"Apply S.T.O.P rule:\n1. S (Sit down): Sit down, stay calm.\n2. T (Think): Think about the path you took.\n3. O (Observe): Observe surroundings for signs of life.\n4. P (Plan): Plan for shelter and create rescue signals (3 fires/whistle blasts).\n* Note: Always find water and keep your body warm."</item>
+        <item>"R.A.C.E rule:\n1. R (Rescue): Rescue people in immediate danger.\n2. A (Alarm): Alarm, call emergency services.\n3. C (Contain): Close doors to prevent smoke spread.\n4. E (Extinguish): Extinguish the fire if safe.\n* Skills: Crawl on the floor, use wet towels, don\'t use elevators. If trapped, go to the balcony and signal."</item>
+        <item>"1. Stop immediately.\n2. Determine East (Sunrise) / West.\n3. Find high landmarks (towers, mountains).\n4. Follow streams/rivers as they usually lead to residential areas.\n5. Mark your path with stones/cloth to avoid going in circles."</item>
+        <item>"1. Turn off the main power switch immediately.\n2. Move property and family to higher ground.\n3. Prepare food, clean water, and a first aid kit.\n4. Avoid wading through water deep to the knees (water force can sweep away cars).\n5. Monitor announcements from authorities via radio/speakers."</item>
+        <item>"1. As soon as you see sea water receding unusually fast, run to high ground.\n2. Move at least 1-2km away from the coast or to a height of over 30m.\n3. If trapped in a house, choose the highest floor.\n4. Absolutely do not return to the coast after the first wave (later waves are usually larger)."</item>
+        <item>"1. Drop, Cover, Hold on.\n2. Stay away from glass doors, large cabinets, bookshelves.\n3. If outside: Stay away from buildings, power poles, large trees.\n4. If trapped in debris: Don\'t scream excessively to save energy, tap on pipes/metal objects to signal."</item>
+        <item>"1. Find solid shelter, close doors tightly.\n2. Stay away from windows, a sturdy wooden table is a good place.\n3. If outside: Find a low ditch to lie face down, cover head with hands.\n4. Be alert for flying objects."</item>
+        <item>"1. Move to shade/air-conditioned room.\n2. Loosen clothing, apply cool compresses (armpits, groin, neck).\n3. Drink water in small sips.\n4. If unconscious, place in recovery position and call emergency immediately."</item>
+        <item>"1. Absolutely do not touch the victim directly before disconnecting power.\n2. Use a dry non-conductive object (wood, plastic) to separate the victim from the power source.\n3. Once safe, check breathing and heartbeat.\n4. Call emergency services even if the victim seems conscious."</item>
+        <item>"1. Place victim on a hard flat surface.\n2. Place hands on top of each other in the middle of the chest.\n3. Press hard (5-6cm deep) and fast (100-120 times/minute).\n4. Continue until medical personnel arrive or the victim revives."</item>
+        <item>"1. Apply direct pressure to the wound with clean cloth or gauze.\n2. Elevate the injured area above heart level (if no fracture).\n3. If blood soaks through the first layer, don\'t remove it, add a new layer on top.\n4. Use a tourniquet only when bleeding is profuse and cannot be controlled at a limb."</item>
+    </string-array>
+</resources>

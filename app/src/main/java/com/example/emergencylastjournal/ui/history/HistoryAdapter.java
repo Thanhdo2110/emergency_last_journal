@@ -1,5 +1,6 @@
 package com.example.emergencylastjournal.ui.history;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,7 +60,7 @@ public class HistoryAdapter extends ListAdapter<SessionEntity, HistoryAdapter.Vi
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        private final TextView tvDate, tvRoute;
+        private final TextView tvDate, tvRoute, tvViewDetail;
         private final Chip chipStatus;
 
         public ViewHolder(@NonNull View itemView) {
@@ -67,14 +68,20 @@ public class HistoryAdapter extends ListAdapter<SessionEntity, HistoryAdapter.Vi
             tvDate = itemView.findViewById(R.id.tvHistoryDate);
             tvRoute = itemView.findViewById(R.id.tvHistoryRoute);
             chipStatus = itemView.findViewById(R.id.chipHistoryStatus);
+            tvViewDetail = itemView.findViewById(R.id.tvViewDetail);
         }
 
         public void bind(SessionEntity session, OnItemClickListener listener) {
+            Context context = itemView.getContext();
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
             tvDate.setText(sdf.format(new Date(session.startedAt)));
             
-            String routeText = (session.route != null && !session.route.isEmpty()) ? session.route : "Không có mô tả lộ trình";
+            String routeText = (session.route != null && !session.route.isEmpty()) ? session.route : context.getString(R.string.no_route_description);
             tvRoute.setText(routeText);
+            
+            if (tvViewDetail != null) {
+                tvViewDetail.setText(R.string.view_history);
+            }
 
             // Logic hiển thị trạng thái theo yêu cầu mới
             String outcome = session.outcome != null ? session.outcome : "active";
@@ -82,42 +89,32 @@ public class HistoryAdapter extends ListAdapter<SessionEntity, HistoryAdapter.Vi
             switch (outcome) {
                 case "safe":
                 case "manual":
-                    chipStatus.setText("AN TOÀN");
+                    chipStatus.setText(context.getString(R.string.filter_safe).toUpperCase());
                     chipStatus.setChipBackgroundColorResource(R.color.bg_status_green_alpha);
-                    chipStatus.setTextColor(itemView.getContext().getColor(R.color.status_green));
+                    chipStatus.setTextColor(context.getColor(R.color.status_green));
                     chipStatus.setChipStrokeColorResource(R.color.status_green);
                     break;
                 case "danger":
                 case "emergency":
-                    // Phân biệt NGUY HIỂM (hết giờ) và KHẨN CẤP (nhấn SOS)
-                    if ("emergency".equals(outcome)) {
-                        chipStatus.setText("KHẨN CẤP");
-                        chipStatus.setChipBackgroundColorResource(R.color.bg_alert_red_alpha);
-                        chipStatus.setTextColor(itemView.getContext().getColor(R.color.alert_red));
-                        chipStatus.setChipStrokeColorResource(R.color.alert_red);
-                    } else {
-                        chipStatus.setText("NGUY HIỂM");
-                        chipStatus.setChipBackgroundColorResource(R.color.bg_alert_red_alpha);
-                        chipStatus.setTextColor(itemView.getContext().getColor(R.color.alert_red));
-                        chipStatus.setChipStrokeColorResource(R.color.alert_red);
-                    }
-                    break;
                 case "sos_manual":
-                    chipStatus.setText("KHẨN CẤP");
+                    String statusText = "emergency".equals(outcome) || "sos_manual".equals(outcome) ? 
+                            context.getString(R.string.filter_emergency) : context.getString(R.string.filter_danger);
+                    
+                    chipStatus.setText(statusText.toUpperCase());
                     chipStatus.setChipBackgroundColorResource(R.color.bg_alert_red_alpha);
-                    chipStatus.setTextColor(itemView.getContext().getColor(R.color.alert_red));
+                    chipStatus.setTextColor(context.getColor(R.color.alert_red));
                     chipStatus.setChipStrokeColorResource(R.color.alert_red);
                     break;
                 case "active":
-                    chipStatus.setText("ĐANG CHẠY");
+                    chipStatus.setText(context.getString(R.string.filter_running).toUpperCase());
                     chipStatus.setChipBackgroundColorResource(R.color.primary_bg);
-                    chipStatus.setTextColor(itemView.getContext().getColor(R.color.primary));
+                    chipStatus.setTextColor(context.getColor(R.color.primary));
                     chipStatus.setChipStrokeColorResource(R.color.primary);
                     break;
                 default:
-                    chipStatus.setText("AN TOÀN");
+                    chipStatus.setText(context.getString(R.string.filter_safe).toUpperCase());
                     chipStatus.setChipBackgroundColorResource(R.color.bg_status_green_alpha);
-                    chipStatus.setTextColor(itemView.getContext().getColor(R.color.status_green));
+                    chipStatus.setTextColor(context.getColor(R.color.status_green));
                     chipStatus.setChipStrokeColorResource(R.color.status_green);
                     break;
             }

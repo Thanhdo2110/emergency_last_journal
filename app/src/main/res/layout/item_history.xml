@@ -65,10 +65,11 @@
                 app:tint="@color/primary" />
 
             <TextView
+                android:id="@+id/tvViewDetail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
-                android:text="Xem chi tiết lộ trình"
+                android:text="@string/history_detail_label"
                 android:textColor="@color/primary"
                 android:textSize="12sp"
                 android:textStyle="bold" />

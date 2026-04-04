@@ -62,10 +62,10 @@ public class ContactsFragment extends Fragment {
             @Override
             public void onDelete(ContactEntity contact) {
                 new MaterialAlertDialogBuilder(requireContext())
-                        .setTitle("Xóa người thân")
-                        .setMessage("Bạn có chắc chắn muốn xóa " + contact.name + "?")
-                        .setPositiveButton("Xóa", (d, w) -> viewModel.deleteContact(contact))
-                        .setNegativeButton("Hủy", null)
+                        .setTitle(R.string.delete_contact)
+                        .setMessage(getString(R.string.delete_confirm_msg, contact.name))
+                        .setPositiveButton(R.string.delete, (d, w) -> viewModel.deleteContact(contact))
+                        .setNegativeButton(R.string.cancel, null)
                         .show();
             }
         });
@@ -92,27 +92,26 @@ public class ContactsFragment extends Fragment {
         }
 
         new MaterialAlertDialogBuilder(requireContext())
-                .setTitle(existingContact == null ? "Thêm người thân" : "Sửa thông tin")
+                .setTitle(existingContact == null ? R.string.add_contact : R.string.edit_contact)
                 .setView(dialogView)
-                .setPositiveButton("Lưu", (dialog, which) -> {
+                .setPositiveButton(R.string.save, (dialog, which) -> {
                     String name = etName.getText().toString().trim();
                     String email = etEmail.getText().toString().trim();
                     
                     if (!name.isEmpty() && !email.isEmpty()) {
                         if (existingContact == null) {
-                            // Phone is set to empty string as we removed it from UI
                             viewModel.addContact(name, "", email);
                         } else {
                             existingContact.name = name;
                             existingContact.email = email;
-                            existingContact.phone = ""; // Clear phone if updating
+                            existingContact.phone = ""; 
                             viewModel.updateContact(existingContact);
                         }
                     } else {
-                        Toast.makeText(getContext(), "Vui lòng nhập đầy đủ tên và email", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), R.string.error_fill_all, Toast.LENGTH_SHORT).show();
                     }
                 })
-                .setNegativeButton("Hủy", null)
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 }

@@ -1,5 +1,8 @@
 package com.example.emergencylastjournal;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,12 +20,29 @@ import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.util.Locale;
+
 public class MainActivity extends AppCompatActivity {
 
     private NavController navController;
     private BottomNavigationView bottomNav;
     private MaterialToolbar toolbar;
     private AppBarLayout appBarLayout;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        // Dùng SharedPreferences để đọc ngôn ngữ nhanh hơn, tránh crash do Room chạy trên UI thread
+        SharedPreferences prefs = newBase.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+        String language = prefs.getString("language", "Vietnam");
+        
+        String langCode = language.equalsIgnoreCase("English") ? "en" : "vi";
+        Locale locale = new Locale(langCode);
+        Locale.setDefault(locale);
+        
+        Configuration config = new Configuration(newBase.getResources().getConfiguration());
+        config.setLocale(locale);
+        super.attachBaseContext(newBase.createConfigurationContext(config));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,36 +78,27 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // TỐI ƯU INSETS: Xử lý cả Top và Bottom một cách chính xác
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            
-            // Padding top cho main container để tránh status bar
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
-
-            // Margin bottom cho BottomNavigationView để nó không bị Navigation Bar của hệ thống che
             if (bottomNav != null) {
                 ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) bottomNav.getLayoutParams();
                 layoutParams.bottomMargin = systemBars.bottom;
                 bottomNav.setLayoutParams(layoutParams);
             }
-            
             return WindowInsetsCompat.CONSUMED;
         });
 
         if (navController != null) {
             navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
                 int destId = destination.getId();
-                
                 if (destId == R.id.navigation_welcome) {
                     appBarLayout.setVisibility(View.GONE);
                     bottomNav.setVisibility(View.GONE);
-                } 
-                else if (destId == R.id.navigation_map) {
+                } else if (destId == R.id.navigation_map) {
                     appBarLayout.setVisibility(View.GONE);
                     bottomNav.setVisibility(View.VISIBLE);
-                } 
-                else {
+                } else {
                     appBarLayout.setVisibility(View.VISIBLE);
                     bottomNav.setVisibility(View.VISIBLE);
                     toolbar.setTitle(destination.getLabel());

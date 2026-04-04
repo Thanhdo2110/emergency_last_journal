@@ -83,20 +83,19 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         Intent extendIntent = new Intent(requireContext(), TrackingForegroundService.class);
         extendIntent.setAction(TrackingForegroundService.ACTION_EXTEND_TIMER);
         requireContext().startForegroundService(extendIntent);
-        Toast.makeText(getContext(), "Đã cộng thêm 10 phút bảo vệ", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), getString(R.string.extend_toast), Toast.LENGTH_SHORT).show();
     }
 
     private void showSafeBackConfirmDialog() {
         if (getContext() == null) return;
         AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Xác nhận An toàn")
-                .setMessage("Bạn muốn kết thúc bảo vệ?")
-                .setPositiveButton("Xác nhận", (d, which) -> finishCurrentSession())
-                .setNegativeButton("Hủy", null)
+                .setTitle(getString(R.string.safe_back_confirm_title))
+                .setMessage(getString(R.string.safe_back_confirm_msg))
+                .setPositiveButton(getString(R.string.confirm), (d, which) -> finishCurrentSession())
+                .setNegativeButton(getString(R.string.cancel), null)
                 .create();
         dialog.show();
         
-        // Cường hóa màu chữ để đảm bảo nhìn thấy được trên nền trắng
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#007A8A"));
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#757575"));
     }
@@ -106,7 +105,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             TrackingForegroundService.timeLeftSeconds.postValue(0L);
             requireContext().stopService(new Intent(requireContext(), TrackingForegroundService.class));
             viewModel.completeSession(currentActiveSession);
-            Toast.makeText(getContext(), "Hoàn thành bảo vệ!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.finish_protection_toast), Toast.LENGTH_SHORT).show();
             Navigation.findNavController(requireView()).navigate(R.id.navigation_home);
         }
     }
@@ -120,7 +119,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             googleMap.setMyLocationEnabled(true);
             googleMap.getUiSettings().setMyLocationButtonEnabled(true);
             
-            // Lấy vị trí ngay lập tức để không bị hiển thị ở Mỹ khi vừa mở map
             fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
                 if (location != null && isFirstFix) {
                     LatLng myPos = new LatLng(location.getLatitude(), location.getLongitude());
@@ -129,7 +127,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             });
         }
         
-        // TẮT ZOOM CONTROLS ĐỂ TRÁNH CHE MẤT NÚT CỦA BẠN
         googleMap.getUiSettings().setZoomControlsEnabled(false);
         googleMap.getUiSettings().setCompassEnabled(true);
         googleMap.getUiSettings().setMapToolbarEnabled(false);
@@ -171,7 +168,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (userMarker == null) {
             userMarker = googleMap.addMarker(new MarkerOptions()
                     .position(currentPos)
-                    .title("Vị trí thực tế")
+                    .title(getString(R.string.actual_location))
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
                     .flat(true)
                     .anchor(0.5f, 0.5f));

@@ -5,6 +5,43 @@
     android:layout_height="match_parent"
     android:background="@color/white">
 
+    <!-- Language Selector Toggle at top right -->
+    <LinearLayout
+        android:id="@+id/layoutLanguageSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
+        android:layout_marginEnd="24dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Vietnam"
+            android:textColor="@color/text_secondary_light"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchLanguage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            app:thumbTint="@color/alert_red"
+            app:trackTint="@color/alert_red_bg" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="English"
+            android:textColor="@color/text_secondary_light"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
     <!-- Top Section for Logo and Welcome Message -->
     <LinearLayout
         android:id="@+id/topSection"
@@ -12,14 +49,16 @@
         android:layout_height="0dp"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="24dp"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="32dp"
+        android:paddingBottom="16dp"
         app:layout_constraintBottom_toTopOf="@+id/formSection"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/layoutLanguageSwitch">
 
         <ImageView
             android:id="@+id/ivLogo"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:src="@android:drawable/ic_dialog_alert"
             app:tint="@color/alert_red" />
 
@@ -27,21 +66,21 @@
             android:id="@+id/tvWelcomeTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Chào mừng bạn!"
+            android:layout_marginTop="16dp"
+            android:text="@string/welcome_title"
             android:textColor="@color/text_primary_light"
-            android:textSize="28sp"
+            android:textSize="24sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvWelcomeDesc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:gravity="center"
-            android:text="Hãy thiết lập thông tin cơ bản để được hỗ trợ tốt nhất trong các tình huống khẩn cấp."
+            android:text="@string/welcome_desc"
             android:textColor="@color/text_secondary_light"
-            android:textSize="15sp" />
+            android:textSize="14sp" />
     </LinearLayout>
 
     <!-- Bottom Section for Input Fields -->
@@ -50,7 +89,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp"
+        android:paddingHorizontal="24dp"
+        android:paddingBottom="16dp"
         app:layout_constraintBottom_toTopOf="@+id/btnStart">
 
         <com.google.android.material.textfield.TextInputLayout
@@ -60,7 +100,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
             app:startIconDrawable="@android:drawable/ic_menu_myplaces"
-            android:hint="Họ và tên">
+            android:hint="@string/full_name_hint">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etName"
                 android:layout_width="match_parent"
@@ -75,7 +115,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
             app:startIconDrawable="@android:drawable/ic_menu_info_details"
-            android:hint="Nhóm máu (A, B, O, AB...)">
+            android:hint="@string/blood_type_hint">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etBloodType"
                 android:layout_width="match_parent"
@@ -90,7 +130,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
             app:startIconDrawable="@android:drawable/ic_menu_today"
-            android:hint="Ngày tháng năm sinh (ngay/thang/nam)">
+            android:hint="@string/dob_hint">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etDob"
                 android:layout_width="match_parent"
@@ -105,7 +145,7 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_margin="24dp"
-        android:text="Bắt đầu ngay"
+        android:text="@string/start_now"
         android:textAllCaps="false"
         android:textSize="18sp"
         android:textStyle="bold"

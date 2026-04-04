@@ -17,7 +17,7 @@ import com.example.emergencylastjournal.data.entity.UserEntity;
 
 /**
  * Main database for the Emergency Journal application.
- * Version 9 adds dateOfBirth field to UserEntity.
+ * Version 10 adds language field to UserEntity.
  */
 @Database(entities = {
         UserEntity.class, 
@@ -25,7 +25,7 @@ import com.example.emergencylastjournal.data.entity.UserEntity;
         ContactEntity.class, 
         PhotoEntity.class, 
         GpsLogEntity.class
-}, version = 9, exportSchema = false)
+}, version = 10, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     private static volatile AppDatabase INSTANCE;
 

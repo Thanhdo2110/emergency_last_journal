@@ -1,5 +1,6 @@
 package com.example.emergencylastjournal.ui.contacts;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -81,13 +82,15 @@ public class ContactAdapter extends ListAdapter<ContactEntity, ContactAdapter.Vi
         }
 
         public void bind(ContactEntity contact, OnContactActionListener listener) {
+            Context context = itemView.getContext();
             tvName.setText(contact.name);
-            tvEmail.setText(contact.email != null ? contact.email : "Chưa có email");
+            tvEmail.setText(contact.email != null ? contact.email : context.getString(R.string.no_email));
             swLocation.setChecked(contact.shareLocation);
 
             if (contact.sosCount > 0) {
                 layoutSosStatus.setVisibility(View.VISIBLE);
-                tvSosStatusCount.setText("Đã gửi " + contact.sosCount + " tin nhắn SOS");
+                tvSosStatusCount.setText(context.getString(R.string.sos_messages_sent, contact.sosCount));
+                btnViewSosDetail.setText(context.getString(R.string.view_detail_caps));
                 btnViewSosDetail.setOnClickListener(v -> showSosDetailDialog(contact));
             } else {
                 layoutSosStatus.setVisibility(View.GONE);
@@ -104,11 +107,12 @@ public class ContactAdapter extends ListAdapter<ContactEntity, ContactAdapter.Vi
         }
 
         private void showSosDetailDialog(ContactEntity contact) {
-            new MaterialAlertDialogBuilder(itemView.getContext())
-                    .setTitle("Nội dung tin nhắn SOS")
-                    .setMessage("Tin nhắn gần nhất được gửi tới " + contact.name + ":\n\n" + 
-                                (contact.lastSosMessage != null ? contact.lastSosMessage : "Dữ liệu đang được cập nhật..."))
-                    .setPositiveButton("Đóng", null)
+            Context context = itemView.getContext();
+            new MaterialAlertDialogBuilder(context)
+                    .setTitle(R.string.sos_message_content)
+                    .setMessage(context.getString(R.string.last_sos_msg_to, contact.name) + 
+                                (contact.lastSosMessage != null ? contact.lastSosMessage : context.getString(R.string.no_sos_data)))
+                    .setPositiveButton(R.string.close, null)
                     .show();
         }
     }

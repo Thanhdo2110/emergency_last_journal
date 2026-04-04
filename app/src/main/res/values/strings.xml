@@ -39,4 +39,173 @@
     <string name="privacy_title">Quyền riêng tư</string>
     <string name="privacy_desc">Bạn có thể tắt quyền nhận vị trí cho từng người bất kỳ lúc nào.</string>
     <string name="add_contact">Thêm người thân</string>
+    <string name="edit_contact">Sửa thông tin</string>
+    <string name="delete_contact">Xóa người thân</string>
+    <string name="delete_confirm_msg">Bạn có chắc chắn muốn xóa %1$s?</string>
+    <string name="delete">Xóa</string>
+    <string name="save">Lưu</string>
+    <string name="contact_name_hint">Tên người thân</string>
+    <string name="email_address_hint">Địa chỉ Email</string>
+    <string name="error_fill_all">Vui lòng nhập đầy đủ tên và email</string>
+
+    <string name="no_email">Chưa có email</string>
+    <string name="sos_messages_sent">Đã gửi %1$d tin nhắn SOS</string>
+    <string name="view_detail_caps">XEM CHI TIẾT</string>
+    <string name="sos_message_content">Nội dung tin nhắn SOS</string>
+    <string name="last_sos_msg_to">Tin nhắn gần nhất được gửi tới %1$s:\n\n</string>
+    <string name="no_sos_data">Dữ liệu đang được cập nhật...</string>
+    <string name="close">Đóng</string>
+
+    <!-- History Detail -->
+    <string name="history_detail_title">Chi tiết nhật ký</string>
+    <string name="event_location_label">Vị trí sự kiện (Tọa độ)</string>
+    <string name="no_location_data">Chưa có dữ liệu vị trí</string>
+    <string name="tap_to_view_map">Nhấn để xem trên bản đồ</string>
+    <string name="time_label">Thời gian: %1$s</string>
+    <string name="status_label">Trạng thái: %1$s</string>
+    <string name="journal_note_label">Ghi chú: %1$s</string>
+    <string name="journal_photo_label">Hình ảnh nhật ký</string>
+    <string name="back">Quay lại</string>
+    <string name="emergency_triggered_msg">SOS khẩn cấp được kích hoạt trực tiếp.</string>
+    <string name="no_route_description">Không có mô tả lộ trình</string>
+
+    <!-- Profile & Survival -->
+    <string name="language_dialog_title">Chọn ngôn ngữ</string>
+    <string name="about_app_title">Sứ mệnh của chúng tôi</string>
+    <string name="about_app_message">"✨ Emergency Last Journal không chỉ là một ứng dụng, mà là một lời hứa về sự an toàn.\n\n❤️ Xuất phát từ trái tim của những người mong muốn không ai phải cô độc trong nghịch cảnh, chúng tôi tạo ra công cụ này với hy vọng bạn 'sẽ không bao giờ phải dùng đến nó'. Nhưng nếu khoảnh khắc định mệnh ập đến, ứng dụng sẽ là người gác cửa thầm lặng, là tiếng nói khi bạn không thể cất lời, và là sợi dây kết nối bạn với người thân qua từng tọa độ sinh tồn.\n\n🌟 Mỗi dòng code được viết nên bằng sự trân trọng giá trị cuộc sống. Chúng tôi tin rằng, cứu một người là cứu cả một thế giới. Cảm ơn bạn đã tin tưởng để chúng tôi đồng hành trên mọi nẻo đường."</string>
+    <string name="survival_handbook_title">Cẩm nang sinh tồn chi tiết</string>
+
+    <!-- Navigation Labels -->
+    <string name="welcome_label">Chào mừng</string>
+    <string name="create_journal_label">Tạo Nhật ký</string>
+    <string name="history_detail_label">Chi tiết lộ trình</string>
+
+    <!-- Messages -->
+    <string name="selected_language">Đang chọn: %1$s</string>
+    <string name="error_required">Bắt buộc</string>
+
+    <!-- Home UI Strings -->
+    <string name="urgent_condition">TÌNH TRẠNG CẤP BÁCH</string>
+    <string name="send_sos_now">Gửi SOS ngay cho người thân</string>
+    <string name="start_now">Bắt đầu ngay</string>
+    <string name="manage">Quản lý</string>
+    <string name="open_journal">Mở nhật ký</string>
+    <string name="no_active_session">Hiện không có phiên bảo vệ nào đang chạy!</string>
+    <string name="need_setup_contacts">Thiết lập danh bạ</string>
+    <string name="no_contacts_msg">Bạn chưa thêm bất kỳ người thân nào vào danh bạ SOS. Để hệ thống có thể hoạt động hiệu quả, vui lòng thêm ít nhất một người thân ngay bây giờ.</string>
+    <string name="add_now">Thêm ngay</string>
+    <string name="later">Để sau</string>
+    <string name="no_contacts_sos_msg">Chưa có danh bạ người thân để gửi SOS!</string>
+    <string name="setup_email_sos">Thiết lập Email SOS</string>
+    <string name="input_email_msg">Bạn chưa thiết lập email cho người thân (%1$s). Vui lòng nhập email để gửi thông báo SOS:</string>
+    <string name="send_sos">Gửi SOS</string>
+    <string name="invalid_email">Email không hợp lệ!</string>
+    <string name="determining_location">Đang xác định vị trí và gửi SOS...</string>
+    <string name="sos_sent_msg">HỆ THỐNG ĐÃ GỬI TIN NHẮN SOS!</string>
+    <string name="emergency_status_msg">CẢNH BÁO: ĐÃ GỬI SOS!</string>
+    <string name="warning_status_msg">CẢNH BÁO: CÒN DƯỚI 5 PHÚT!</string>
+
+    <!-- Welcome Screen -->
+    <string name="welcome_title">Chào mừng bạn!</string>
+    <string name="welcome_desc">Hãy thiết lập thông tin cơ bản để được hỗ trợ tốt nhất trong các tình huống khẩn cấp.</string>
+    <string name="full_name_hint">Họ và tên</string>
+    <string name="blood_type_hint">Nhóm máu (A, B, O, AB...)</string>
+    <string name="dob_hint">Ngày tháng năm sinh (ngày/tháng/năm)</string>
+
+    <!-- Create Journal Screen -->
+    <string name="route_details_title">CHI TIẾT LỘ TRÌNH</string>
+    <string name="route_hint">Bạn đang đi đâu? Ví dụ: Về nhà, đi phượt...</string>
+    <string name="camera_location_title">MÁY ẢNH VÀ VỊ TRÍ</string>
+    <string name="capture_photo_title">Chụp ảnh hiện trường</string>
+    <string name="capture_photo_desc">Nhấn để chụp ảnh thực tế</string>
+    <string name="send_location_title">Gửi vị trí hiện tại</string>
+    <string name="location_unknown">Chưa xác định vị trí</string>
+    <string name="current_status_title">TÌNH TRẠNG HIỆN TẠI</string>
+    <string name="status_safe_short">An toàn</string>
+    <string name="status_tired_short">Mệt mỏi</string>
+    <string name="status_danger_short">Nguy hiểm</string>
+    <string name="safety_timer_title">HẸN GIỜ BẢO VỆ</string>
+    <string name="start_protection">BẮT ĐẦU BẢO VỆ</string>
+
+    <!-- Profile Screen -->
+    <string name="info_app_section">Thông tin &amp; Ứng dụng</string>
+    <string name="about_app_card_title">Về Emergency Last Journal</string>
+    <string name="about_app_card_desc">Sứ mệnh và thông điệp từ nhà phát triển</string>
+    <string name="personal_info_card_title">Thông tin cá nhân</string>
+    <string name="personal_info_card_desc">Cập nhật họ tên, nhóm máu và liên hệ</string>
+    <string name="language_card_title">Ngôn ngữ / Language</string>
+    <string name="support_knowledge_section">Hỗ trợ &amp; Kiến thức</string>
+    <string name="survival_handbook_card_title">Cẩm nang sinh tồn</string>
+    <string name="survival_handbook_card_desc">Kỹ năng khi lạc rừng, cháy, thiên tai...</string>
+    <string name="app_version">Phiên bản 2.4.0 (Build 82)</string>
+
+    <!-- Map Screen -->
+    <string name="extend_10_mins">+10 Phút</string>
+    <string name="back_to_safe">Về an toàn</string>
+    <string name="extend_toast">Đã cộng thêm 10 phút bảo vệ</string>
+    <string name="finish_protection_toast">Hoàn thành bảo vệ!</string>
+    <string name="safe_back_confirm_title">Xác nhận An toàn</string>
+    <string name="safe_back_confirm_msg">Bạn muốn kết thúc bảo vệ?</string>
+    <string name="confirm">Xác nhận</string>
+    <string name="cancel">Hủy</string>
+    <string name="actual_location">Vị trí thực tế</string>
+
+    <!-- History Screen -->
+    <string name="filter_safe">An toàn</string>
+    <string name="filter_danger">Nguy hiểm</string>
+    <string name="filter_emergency">Khẩn cấp</string>
+    <string name="filter_running">Đang chạy</string>
+
+    <!-- Notifications -->
+    <string name="notif_tracking_active">Đang trong chế độ bảo vệ...</string>
+    <string name="notif_extended_10_mins">Đã gia hạn thêm 10 phút bảo vệ</string>
+    <string name="notif_urgent_1min">CẤP BÁCH: Còn 1 phút! Sắp gửi Email cảnh báo!</string>
+    <string name="notif_warning_remaining">CẢNH BÁO: Còn %1$d phút bảo vệ</string>
+    <string name="notif_timeout_sos_sent">HẾT GIỜ! Đã gửi Email SOS tới người thân!</string>
+
+    <!-- Email SOS -->
+    <string name="email_subject_sos">CẢNH BÁO SOS: %1$s ĐANG GẶP NGUY HIỂM</string>
+    <string name="email_header_sos">CẢNH BÁO SOS KHẨN CẤP</string>
+    <string name="email_info_title">THÔNG TIN NGƯỜI CẦN TRỢ GIÚP:</string>
+    <string name="email_full_name">Họ tên:</string>
+    <string name="email_dob">Ngày sinh:</string>
+    <string name="email_blood_type">Nhóm máu:</string>
+    <string name="email_location_title">VỊ TRÍ KHẨN CẤP</string>
+    <string name="email_coordinates">Tọa độ:</string>
+    <string name="email_open_maps">MỞ GOOGLE MAPS NGAY</string>
+    <string name="email_location_unknown">KHÔNG XÁC ĐỊNH ĐƯỢC TỌA ĐỘ CHÍNH XÁC</string>
+    <string name="email_evidence_title">HÌNH ẢNH HIỆN TRƯỜNG:</string>
+    <string name="email_route">Lộ trình:</string>
+    <string name="email_footer">Hãy hành động ngay để giúp đỡ người thân của bạn.</string>
+    <string name="email_unknown_relative">Người thân của bạn</string>
+    <string name="email_not_available">N/A</string>
+    <string name="email_route_not_available">Chưa xác định</string>
+
+    <string-array name="survival_topics">
+        <item>Lạc trong rừng (S.T.O.P)</item>
+        <item>Cháy nhà/Cao tầng (R.A.C.E)</item>
+        <item>Lạc đường/Mất phương hướng</item>
+        <item>Lũ lụt/Nước dâng</item>
+        <item>Sóng thần/Triều cường</item>
+        <item>Động đất/Sụp đổ cấu trúc</item>
+        <item>Bão/Lốc xoáy</item>
+        <item>Say nắng/Sốc nhiệt</item>
+        <item>Điện giật</item>
+        <item>Sơ cứu: Ép tim (CPR)</item>
+        <item>Sơ cứu: Chảy máu cấp tính</item>
+    </string-array>
+
+    <string-array name="survival_contents">
+        <item>"Áp dụng quy tắc S.T.O.P:\n1. S (Sit down): Ngồi xuống, giữ bình tĩnh.\n2. T (Think): Suy nghĩ về lộ trình đã qua.\n3. O (Observe): Quan sát xung quanh tìm dấu hiệu sự sống.\n4. P (Plan): Lập kế hoạch trú ẩn và tạo tín hiệu cứu hộ (3 đốm lửa/tiếng còi).\n* Lưu ý: Luôn tìm nguồn nước và giữ ấm cơ thể."</item>
+        <item>"Quy tắc R.A.C.E:\n1. R (Rescue): Cứu người gặp nguy hiểm trực tiếp.\n2. A (Alarm): Báo động, gọi 114.\n3. C (Contain): Đóng cửa ngăn khói lan.\n4. E (Extinguish): Dập lửa nếu an toàn.\n* Kỹ năng: Bò sát sàn, dùng khăn ướt, không dùng thang máy. Nếu kẹt, hãy ra ban công và ra hiệu."</item>
+        <item>"1. Dừng lại ngay lập tức.\n2. Xác định hướng Đông (Mặt trời mọc) / Tây.\n3. Tìm các điểm mốc cao (tháp, núi).\n4. Đi theo dòng chảy của suối/sông vì thường dẫn đến khu dân cư.\n5. Đánh dấu đường đi bằng sỏi/vải để không đi vòng quanh."</item>
+        <item>"1. Ngắt ngay cầu dao điện.\n2. Di chuyển tài sản và gia đình lên cao.\n3. Chuẩn bị lương thực, nước sạch và túi sơ cứu.\n4. Tránh lội qua dòng nước sâu đến đầu gối (lực nước có thể cuốn trôi ô tô).\n5. Theo dõi thông báo từ chính quyền qua radio/loa."</item>
+        <item>"1. Ngay khi thấy nước biển rút nhanh bất thường, hãy chạy lên cao.\n2. Di chuyển ra xa bờ biển ít nhất 1-2km hoặc lên cao trên 30m.\n3. Nếu kẹt trên nhà, hãy chọn tầng cao nhất.\n4. Tuyệt đối không quay lại bờ biển sau đợt sóng đầu tiên (sóng sau thường lớn hơn)."</item>
+        <item>"1. Drop (Quỳ xuống), Cover (Che đầu), Hold on (Giữ chặt vật kiên cố).\n2. Tránh xa cửa kính, tủ lớn, kệ sách.\n3. If đang ở ngoài: Tránh xa tòa nhà, cột điện, cây lớn.\n4. If kẹt trong đống đổ nát: Không la hét quá mức để tiết kiệm sức, hãy gõ vào đường ống/vật kim loại để ra hiệu."</item>
+        <item>"1. Tìm nơi trú ẩn kiên cố, đóng chặt cửa.\n2. Tránh xa cửa sổ, gầm bàn gỗ chắc chắn là nơi tốt.\n3. If ở ngoài: Tìm rãnh thấp để nằm sấp, dùng tay che đầu.\n4. Cảnh giác với vật thể bay."</item>
+        <item>"1. Di chuyển vào bóng râm/phòng máy lạnh.\n2. Nới lỏng quần áo, chườm mát (nách, bẹn, cổ).\n3. Uống nước từng ngụm nhỏ.\n4. Nếu hôn mê, hãy đặt nằm nghiêng và gọi cấp cứu ngay."</item>
+        <item>"1. Tuyệt đối không chạm trực tiếp vào nạn nhân khi chưa ngắt điện.\n2. Dùng vật khô không dẫn điện (gỗ, nhựa) tách nạn nhân khỏi nguồn điện.\n3. Sau khi an toàn, kiểm tra nhịp thở và nhịp tim.\n4. Gọi 115 ngay cả khi nạn nhân có vẻ tỉnh táo."</item>
+        <item>"1. Đặt nạn nhân nằm trên mặt phẳng cứng.\n2. Đặt hai bàn tay chồng lên nhau giữa ngực.\n3. Ép mạnh (sâu 5-6cm) và nhanh (100-120 lần/phút).\n4. Tiếp tục cho đến khi có nhân viên y tế hoặc nạn nhân tỉnh lại."</item>
+        <item>"1. Ép trực tiếp lên vết thương bằng vải sạch hoặc gạc.\n2. Nâng cao vùng bị thương hơn mức tim (nếu không gãy xương).\n3. Nếu máu thấm qua lớp vải đầu tiên, đừng lấy ra, hãy đắp thêm lớp mới lên trên.\n4. Sử dụng ga-rô chỉ khi máu chảy ồ ạt không cầm được ở chi."</item>
+    </string-array>
 </resources>

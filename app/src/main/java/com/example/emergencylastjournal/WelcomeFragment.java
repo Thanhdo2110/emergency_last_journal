@@ -14,6 +14,7 @@ import androidx.navigation.Navigation;
 import com.example.emergencylastjournal.data.db.AppDatabase;
 import com.example.emergencylastjournal.data.entity.UserEntity;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
 import java.util.concurrent.Executors;
 
@@ -21,13 +22,15 @@ public class WelcomeFragment extends Fragment {
 
     private TextInputEditText etName, etBloodType, etDob;
     private MaterialButton btnStart;
-    private static final String PREFS_NAME = "sos_settings"; // Đổi về cùng bộ Prefs để đồng bộ
+    private MaterialSwitch switchLanguage;
+    private static final String PREFS_NAME = "sos_settings";
     private static final String KEY_FIRST_RUN = "is_first_run";
+    private static final String APP_PREFS = "app_prefs";
+    private static final String KEY_LANG = "language";
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Kiểm tra ngay tại đây, nếu không phải lần đầu thì ẩn view đi
         SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         if (!prefs.getBoolean(KEY_FIRST_RUN, true)) {
             return new View(requireContext()); 
@@ -49,8 +52,31 @@ public class WelcomeFragment extends Fragment {
         etBloodType = view.findViewById(R.id.etBloodType);
         etDob = view.findViewById(R.id.etDob);
         btnStart = view.findViewById(R.id.btnStart);
+        switchLanguage = view.findViewById(R.id.switchLanguage);
+
+        // Thiết lập trạng thái ban đầu cho switch dựa trên ngôn ngữ hiện tại
+        SharedPreferences appPrefs = requireContext().getSharedPreferences(APP_PREFS, Context.MODE_PRIVATE);
+        String currentLang = appPrefs.getString(KEY_LANG, "Vietnam");
+        if (switchLanguage != null) {
+            switchLanguage.setChecked(currentLang.equalsIgnoreCase("English"));
+            
+            switchLanguage.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                String newLang = isChecked ? "English" : "Vietnam";
+                saveLanguage(newLang);
+            });
+        }
 
         btnStart.setOnClickListener(v -> saveAndStart());
+    }
+
+    private void saveLanguage(String lang) {
+        SharedPreferences prefs = requireContext().getSharedPreferences(APP_PREFS, Context.MODE_PRIVATE);
+        prefs.edit().putString(KEY_LANG, lang).apply();
+        
+        // Recreate activity to apply changes immediately
+        if (getActivity() != null) {
+            getActivity().recreate();
+        }
     }
 
     private void saveAndStart() {
@@ -59,7 +85,7 @@ public class WelcomeFragment extends Fragment {
         String bloodType = etBloodType.getText().toString().trim();
         String dob = etDob.getText().toString().trim();
 
-        btnStart.setEnabled(false); // Tránh nhấn nhiều lần
+        btnStart.setEnabled(false);
 
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
@@ -77,7 +103,7 @@ public class WelcomeFragment extends Fragment {
                 db.userDao().insert(user);
 
                 SharedPreferences prefs = appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-                prefs.edit().putBoolean(KEY_FIRST_RUN, false).commit(); // Dùng commit để lưu chắc chắn
+                prefs.edit().putBoolean(KEY_FIRST_RUN, false).commit();
 
                 if (isAdded()) {
                     requireActivity().runOnUiThread(this::navigateToHome);
@@ -92,13 +118,11 @@ public class WelcomeFragment extends Fragment {
         if (!isAdded()) return;
         
         try {
-            // Sử dụng requireView() để tìm NavController từ chính Fragment này
             Navigation.findNavController(requireActivity(), R.id.nav_host_fragment)
                     .navigate(R.id.navigation_home, null, new NavOptions.Builder()
                             .setPopUpTo(R.id.navigation_welcome, true)
                             .build());
         } catch (Exception e) {
-            // Fallback nếu navigation gặp lỗi
             e.printStackTrace();
         }
     }

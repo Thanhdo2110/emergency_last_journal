@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
@@ -36,6 +37,7 @@ import java.util.Locale;
 import java.util.concurrent.Executors;
 
 public class HomeFragment extends Fragment {
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
     private TextView tvStatus, tvTimerH, tvTimerM, tvTimerS;
     private MaterialCardView statusBadge, timerCard, cardEmergency;
     private View homeRootLayout;
@@ -95,7 +97,7 @@ public class HomeFragment extends Fragment {
                 if (TrackingForegroundService.currentState.getValue() != SessionState.IDLE) {
                     Navigation.findNavController(view).navigate(R.id.navigation_map);
                 } else {
-                    Toast.makeText(getContext(), "Hiện không có phiên bảo vệ nào đang chạy!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.no_active_session), Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -134,10 +136,10 @@ public class HomeFragment extends Fragment {
     private void showNoContactsWarning() {
         if (!isAdded()) return;
         new MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Cần thiết lập danh bạ")
-                .setMessage("Bạn chưa thêm bất kỳ người thân nào vào danh bạ SOS. Để hệ thống có thể hoạt động hiệu quả, vui lòng thêm ít nhất một người thân ngay bây giờ.")
+                .setTitle(R.string.need_setup_contacts)
+                .setMessage(R.string.no_contacts_msg)
                 .setCancelable(false)
-                .setPositiveButton("Thêm ngay", (dialog, which) -> {
+                .setPositiveButton(R.string.add_now, (dialog, which) -> {
                     try {
                         NavController navController = Navigation.findNavController(requireView());
                         navController.navigate(R.id.action_home_to_contacts);
@@ -145,7 +147,7 @@ public class HomeFragment extends Fragment {
                         e.printStackTrace();
                     }
                 })
-                .setNegativeButton("Để sau", (dialog, which) -> {
+                .setNegativeButton(R.string.later, (dialog, which) -> {
                     // Người dùng chọn để sau, không làm gì cả, biến flag đã được set để không hiện lại
                 })
                 .show();
@@ -155,13 +157,19 @@ public class HomeFragment extends Fragment {
         Context context = getContext();
         if (context == null) return;
 
+        // BƯỚC 1: KIỂM TRA QUYỀN VỊ TRÍ
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestLocationPermission();
+            return;
+        }
+
         AppDatabase db = AppDatabase.getInstance(context);
         Executors.newSingleThreadExecutor().execute(() -> {
             List<ContactEntity> contacts = db.contactDao().getEmergencyContactsSync();
             
             new Handler(Looper.getMainLooper()).post(() -> {
                 if (contacts == null || contacts.isEmpty()) {
-                    Toast.makeText(context, "Chưa có danh bạ người thân để gửi SOS!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, getString(R.string.no_contacts_sos_msg), Toast.LENGTH_LONG).show();
                     return;
                 }
 
@@ -184,27 +192,46 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    private void requestLocationPermission() {
+        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Đã cấp quyền, tiếp tục gửi SOS
+                checkAndSendEmergency();
+            } else {
+                Toast.makeText(getContext(), "Ứng dụng cần quyền vị trí để gửi SOS chính xác cho người thân.", Toast.LENGTH_LONG).show();
+                // Vẫn cho phép gửi SOS nhưng cảnh báo có thể không có vị trí
+                performEmergencyActions();
+            }
+        }
+    }
+
     private void showEmailInputDialog(ContactEntity contact) {
         EditText etEmail = new EditText(getContext());
-        etEmail.setHint("Email người thân (ví dụ: abc@gmail.com)");
+        etEmail.setHint("Email (e.g., abc@gmail.com)");
         etEmail.setPadding(60, 40, 60, 40);
 
         new MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Cần thiết lập Email SOS")
-                .setMessage("Bạn chưa thiết lập email cho người thân (" + contact.name + "). Vui lòng nhập email để gửi thông báo SOS:")
+                .setTitle(R.string.setup_email_sos)
+                .setMessage(getString(R.string.input_email_msg, contact.name))
                 .setView(etEmail)
                 .setCancelable(false)
-                .setPositiveButton("Gửi SOS", (dialog, which) -> {
+                .setPositiveButton(R.string.send_sos, (dialog, which) -> {
                     String email = etEmail.getText().toString().trim();
                     if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                        Toast.makeText(getContext(), "Email không hợp lệ!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.invalid_email), Toast.LENGTH_SHORT).show();
                         showEmailInputDialog(contact); // Hiện lại dialog nếu sai
                     } else {
                         // Cập nhật email vào DB và gửi SOS
                         updateContactEmailAndSend(contact, email);
                     }
                 })
-                .setNegativeButton("Hủy", null)
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 
@@ -218,7 +245,7 @@ public class HomeFragment extends Fragment {
 
     @SuppressLint("MissingPermission")
     private void performEmergencyActions() {
-        Toast.makeText(getContext(), "Đang xác định vị trí và gửi SOS...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), getString(R.string.determining_location), Toast.LENGTH_SHORT).show();
         
         // Lấy vị trí hiện tại trước khi lưu lịch sử
         fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
@@ -298,22 +325,22 @@ public class HomeFragment extends Fragment {
 
         switch (state) {
             case ACTIVE:
-                statusText = "TRẠNG THÁI: ĐANG THEO DÕI";
+                statusText = getString(R.string.status_tracking);
                 statusColor = ContextCompat.getColor(requireContext(), R.color.primary);
                 bgColor = ContextCompat.getColor(requireContext(), R.color.primary_bg);
                 break;
             case WARNING:
-                statusText = "CẢNH BÁO: CÒN DƯỚI 5 PHÚT!";
+                statusText = getString(R.string.warning_status_msg);
                 statusColor = ContextCompat.getColor(requireContext(), R.color.history_orange);
                 bgColor = ContextCompat.getColor(requireContext(), R.color.history_orange_bg);
                 break;
             case URGENT:
             case EMERGENCY:
-                statusText = "CẢNH BÁO: ĐÃ GỬI SOS!";
+                statusText = getString(R.string.emergency_status_msg);
                 statusColor = ContextCompat.getColor(requireContext(), R.color.alert_red);
                 bgColor = ContextCompat.getColor(requireContext(), R.color.alert_red_bg);
                 if (getContext() != null) {
-                    Toast.makeText(getContext(), "HỆ THỐNG ĐÃ GỬI TIN NHẮN SOS!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), getString(R.string.sos_sent_msg), Toast.LENGTH_LONG).show();
                 }
                 break;
             default:

@@ -18,6 +18,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.emergencylastjournal.MainActivity;
+import com.example.emergencylastjournal.R;
 import com.example.emergencylastjournal.data.db.AppDatabase;
 import com.example.emergencylastjournal.data.entity.GpsLogEntity;
 import com.example.emergencylastjournal.data.entity.SessionEntity;
@@ -59,7 +60,7 @@ public class TrackingForegroundService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = buildNotification("Đang trong chế độ bảo vệ...", false);
+        Notification notification = buildNotification(getString(R.string.notif_tracking_active), false);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(NOTIF_ID_MAIN, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
         } else {
@@ -91,7 +92,7 @@ public class TrackingForegroundService extends Service {
             isEmailSent = false;
         }
         startTimer(newDuration);
-        updateMainNotification("Đã gia hạn thêm 10 phút bảo vệ", false);
+        updateMainNotification(getString(R.string.notif_extended_10_mins), false);
     }
 
     private void startTimer(long duration) {
@@ -110,13 +111,13 @@ public class TrackingForegroundService extends Service {
                     if (currentState.getValue() != SessionState.URGENT) {
                         currentState.postValue(SessionState.URGENT);
                     }
-                    showSpecialNotification(NOTIF_ID_URGENT, "CẤP BÁCH: Còn 1 phút! Sắp gửi Email cảnh báo!");
+                    showSpecialNotification(NOTIF_ID_URGENT, getString(R.string.notif_urgent_1min));
                 } else if (seconds <= 300 && seconds > 60) {
                     if (currentState.getValue() != SessionState.WARNING) {
                         currentState.postValue(SessionState.WARNING);
                     }
                     if (seconds % 60 == 0) {
-                        showSpecialNotification(NOTIF_ID_WARNING, "CẢNH BÁO: Còn " + (seconds/60) + " phút bảo vệ");
+                        showSpecialNotification(NOTIF_ID_WARNING, getString(R.string.notif_warning_remaining, (seconds/60)));
                     }
                 }
             }
@@ -129,11 +130,8 @@ public class TrackingForegroundService extends Service {
                 
                 if (!isEmailSent) {
                     isEmailSent = true;
-                    showSpecialNotification(NOTIF_ID_URGENT, "HẾT GIỜ! Đã gửi Email SOS tới người thân!");
-                    // KHI HẾT GIỜ: Đánh dấu là NGUY HIỂM trong lịch sử
+                    showSpecialNotification(NOTIF_ID_URGENT, getString(R.string.notif_timeout_sos_sent));
                     updateSessionOutcome("danger");
-                    
-                    // Gửi Email SOS
                     EmailHelper.sendEmergencyEmail(TrackingForegroundService.this, currentSessionId);
                 }
             }
@@ -171,7 +169,7 @@ public class TrackingForegroundService extends Service {
         PendingIntent pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Nhật Ký Khẩn Cấp")
+                .setContentTitle(getString(R.string.app_name))
                 .setContentText(contentText)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentIntent(pi)

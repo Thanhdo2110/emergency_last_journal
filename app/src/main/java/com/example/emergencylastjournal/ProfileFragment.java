@@ -1,11 +1,15 @@
 package com.example.emergencylastjournal;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,10 +22,9 @@ import com.google.android.material.textfield.TextInputEditText;
 import java.util.concurrent.Executors;
 
 public class ProfileFragment extends Fragment {
-    private static final String PREF_NAME = "sos_settings";
-    private static final String KEY_SOS_MESSAGE = "sos_message";
-    private TextInputEditText etSosMessage;
     private AppDatabase db;
+    private TextView tvCurrentLanguage;
+    private SharedPreferences prefs;
 
     @Nullable
     @Override
@@ -33,25 +36,91 @@ public class ProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         db = AppDatabase.getInstance(requireContext());
-        etSosMessage = view.findViewById(R.id.etSosMessage);
+        prefs = requireContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+        tvCurrentLanguage = view.findViewById(R.id.tvCurrentLanguage);
         
-        // Tải nội dung tin nhắn SOS
-        SharedPreferences prefs = requireContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        String savedMessage = prefs.getString(KEY_SOS_MESSAGE, "SOS! Tôi gặp nguy hiểm. Lộ trình của tôi: [Route]");
-        etSosMessage.setText(savedMessage);
+        updateLanguageDisplay();
 
-        // Click vào "Thông tin cá nhân" card
+        view.findViewById(R.id.cardAboutApp).setOnClickListener(v -> showAboutAppDialog());
         view.findViewById(R.id.cardPersonalInfo).setOnClickListener(v -> showPersonalInfoDialog());
+        view.findViewById(R.id.cardLanguage).setOnClickListener(v -> showLanguageSelectionDialog());
+        view.findViewById(R.id.cardSurvivalHandbook).setOnClickListener(v -> showSurvivalHandbookDialog());
+    }
 
-        view.findViewById(R.id.btnSaveProfile).setOnClickListener(v -> {
-            String newMessage = etSosMessage.getText().toString().trim();
-            if (newMessage.isEmpty()) {
-                Toast.makeText(getContext(), "Nội dung tin nhắn không được để trống!", Toast.LENGTH_SHORT).show();
-            } else {
-                prefs.edit().putString(KEY_SOS_MESSAGE, newMessage).apply();
-                Toast.makeText(getContext(), "Đã lưu cài đặt SOS!", Toast.LENGTH_SHORT).show();
+    private void updateLanguageDisplay() {
+        String lang = prefs.getString("language", "Vietnam");
+        if (tvCurrentLanguage != null) {
+            tvCurrentLanguage.setText(getString(R.string.selected_language, lang));
+        }
+    }
+
+    private void showLanguageSelectionDialog() {
+        String[] languages = {"Vietnam", "English"};
+        new MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.language_dialog_title))
+            .setItems(languages, (dialog, which) -> {
+                saveLanguage(languages[which]);
+            })
+            .show();
+    }
+
+    private void saveLanguage(String lang) {
+        // Lưu vào SharedPreferences để MainActivity đọc nhanh khi khởi động (Fix crash)
+        prefs.edit().putString("language", lang).apply();
+
+        // Đồng bộ vào Database
+        Executors.newSingleThreadExecutor().execute(() -> {
+            UserEntity user = db.userDao().getUserSync();
+            if (user == null) {
+                user = new UserEntity();
+                user.id = 1;
+            }
+            user.language = lang;
+            db.userDao().insert(user);
+            
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    restartApp();
+                });
             }
         });
+    }
+
+    private void restartApp() {
+        if (getActivity() != null) {
+            Intent intent = getActivity().getIntent();
+            getActivity().finish();
+            startActivity(intent);
+        }
+    }
+
+    private void showAboutAppDialog() {
+        new MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.about_app_title))
+            .setMessage(getString(R.string.about_app_message))
+            .setPositiveButton(android.R.string.ok, null)
+            .show();
+    }
+
+    private void showSurvivalHandbookDialog() {
+        String[] topics = getResources().getStringArray(R.array.survival_topics);
+        String[] contents = getResources().getStringArray(R.array.survival_contents);
+
+        new MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.survival_handbook_title))
+            .setItems(topics, (dialog, which) -> {
+                showSurvivalDetail(topics[which], contents[which]);
+            })
+            .setPositiveButton(android.R.string.cancel, null)
+            .show();
+    }
+
+    private void showSurvivalDetail(String title, String content) {
+        new MaterialAlertDialogBuilder(requireContext())
+            .setTitle(title)
+            .setMessage(content)
+            .setPositiveButton(android.R.string.ok, null)
+            .show();
     }
 
     private void showPersonalInfoDialog() {
@@ -60,8 +129,12 @@ public class ProfileFragment extends Fragment {
         TextInputEditText etBlood = dialogView.findViewById(R.id.etBloodType);
         TextInputEditText etDob = dialogView.findViewById(R.id.etUserDob);
         TextInputEditText etNotes = dialogView.findViewById(R.id.etMedicalNotes);
+        AutoCompleteTextView actvLanguage = dialogView.findViewById(R.id.actvLanguage);
 
-        // Lấy dữ liệu cũ từ DB
+        String[] languages = {"Vietnam", "English"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, languages);
+        actvLanguage.setAdapter(adapter);
+
         Executors.newSingleThreadExecutor().execute(() -> {
             UserEntity user = db.userDao().getUserSync();
             if (user != null && getActivity() != null) {
@@ -70,6 +143,8 @@ public class ProfileFragment extends Fragment {
                     etBlood.setText(user.bloodType);
                     etDob.setText(user.dateOfBirth);
                     etNotes.setText(user.emergencyNotes);
+                    String currentLang = prefs.getString("language", "Vietnam");
+                    actvLanguage.setText(currentLang, false);
                 });
             }
         });
@@ -83,12 +158,14 @@ public class ProfileFragment extends Fragment {
             String blood = etBlood.getText().toString().trim();
             String dob = etDob.getText().toString().trim();
             String notes = etNotes.getText().toString().trim();
+            String lang = actvLanguage.getText().toString().trim();
 
-            // Chỉ bắt buộc tên nếu người dùng muốn lưu thông tin chính thức
             if (name.isEmpty()) {
-                etName.setError("Vui lòng nhập tên");
+                etName.setError(getString(R.string.error_required));
                 return;
             }
+
+            saveLanguage(lang); // Lưu ngôn ngữ và restart app
 
             Executors.newSingleThreadExecutor().execute(() -> {
                 UserEntity user = new UserEntity();
@@ -97,11 +174,11 @@ public class ProfileFragment extends Fragment {
                 user.bloodType = blood;
                 user.dateOfBirth = dob;
                 user.emergencyNotes = notes;
+                user.language = lang;
                 db.userDao().insert(user);
                 
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        Toast.makeText(requireContext(), "Đã cập nhật thông tin cá nhân!", Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
                     });
                 }
