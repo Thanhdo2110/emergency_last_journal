@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.util.Base64;
 import android.util.Log;
 import androidx.core.content.ContextCompat;
 import com.example.emergencylastjournal.data.db.AppDatabase;
@@ -11,17 +12,27 @@ import com.example.emergencylastjournal.data.entity.ContactEntity;
 import com.example.emergencylastjournal.data.entity.GpsLogEntity;
 import com.example.emergencylastjournal.data.entity.SessionEntity;
 import com.example.emergencylastjournal.data.entity.UserEntity;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Executors;
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
 import javax.mail.Authenticator;
+import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 
 public class EmailHelper {
     private static final String TAG = "EmailHelper";
@@ -66,11 +77,10 @@ public class EmailHelper {
                             }
 
                             String emailContent = buildEmailBody(user, session, bestLocation);
-                            sendToAllContacts(contacts, user, emailContent);
+                            sendToAllContacts(contacts, user, emailContent, (sessionId != -1 && session != null) ? session.photoPath : null);
                         });
                     });
                 } else {
-                    // Nếu không có quyền lấy vị trí mới, dùng vị trí cuối trong DB hoặc vị trí bắt đầu
                     Location bestLocation = null;
                     if (lastGpsLog != null) {
                         bestLocation = new Location("stored");
@@ -82,7 +92,7 @@ public class EmailHelper {
                         bestLocation.setLongitude(session.longitude);
                     }
                     String emailContent = buildEmailBody(user, session, bestLocation);
-                    sendToAllContacts(contacts, user, emailContent);
+                    sendToAllContacts(contacts, user, emailContent, (sessionId != -1 && session != null) ? session.photoPath : null);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Lỗi chuẩn bị gửi Email", e);
@@ -90,62 +100,63 @@ public class EmailHelper {
         });
     }
 
-    private static void sendToAllContacts(List<ContactEntity> contacts, UserEntity user, String content) {
+    private static void sendToAllContacts(List<ContactEntity> contacts, UserEntity user, String content, String photoPath) {
         for (ContactEntity contact : contacts) {
             if (contact.email != null && !contact.email.isEmpty()) {
                 String subject = "CẢNH BÁO SOS: " + (user != null ? user.name : "Người thân của bạn") + " ĐANG GẶP NGUY HIỂM";
-                sendMail(contact.email, subject, content);
+                sendMail(contact.email, subject, content, photoPath);
             }
         }
     }
 
     private static String buildEmailBody(UserEntity user, SessionEntity session, Location location) {
         StringBuilder sb = new StringBuilder();
-        // Khung viền ngoài màu đỏ đậm
-        sb.append("<div style='font-family: Arial, sans-serif; border: 3px solid #ff0000; padding: 30px; border-radius: 12px; max-width: 600px; margin: auto;'>");
+        // Khung viền đỏ đậm
+        sb.append("<div style='font-family: sans-serif; border: 3px solid #ff0000; padding: 25px; border-radius: 12px; max-width: 600px; margin: auto;'>");
         
-        // Tiêu đề lớn, nổi bật
-        sb.append("<h1 style='color: #ff0000; text-align: center; text-transform: uppercase; margin-bottom: 30px; font-size: 26px;'>CẢNH BÁO SOS KHẨN CẤP</h1>");
+        sb.append("<h1 style='color: #ff0000; text-align: center; text-transform: uppercase; margin-bottom: 20px; font-size: 24px;'>CẢNH BÁO SOS KHẨN CẤP</h1>");
         
-        sb.append("<p style='font-size: 16px;'>Chào bạn,</p>");
-        sb.append("<p style='font-size: 16px; line-height: 1.5;'>Người thân của bạn đang gửi tín hiệu cầu cứu khẩn cấp từ ứng dụng <b>Emergency Journal</b>.</p>");
-        
-        // Khối thông tin người dùng - Chuyên nghiệp hơn
-        sb.append("<div style='background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; margin: 25px 0;'>");
-        sb.append("<h3 style='margin-top: 0; color: #d32f2f; border-bottom: 2px solid #ff0000; padding-bottom: 8px; display: inline-block;'>THÔNG TIN NGƯỜI CẦN TRỢ GIÚP</h3>");
-        sb.append("<table style='width: 100%; font-size: 16px; margin-top: 10px;'>");
-        sb.append("<tr><td style='width: 40%; font-weight: bold; padding: 5px 0;'>Họ và tên:</td><td>").append(user != null ? user.name : "N/A").append("</td></tr>");
-        sb.append("<tr><td style='font-weight: bold; padding: 5px 0;'>Ngày sinh:</td><td>").append(user != null && user.dateOfBirth != null ? user.dateOfBirth : "N/A").append("</td></tr>");
-        sb.append("<tr><td style='font-weight: bold; padding: 5px 0;'>Nhóm máu:</td><td>").append(user != null && user.bloodType != null ? user.bloodType : "N/A").append("</td></tr>");
-        sb.append("</table>");
+        // Khối thông tin người dùng
+        sb.append("<div style='background-color: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; margin-bottom: 20px;'>");
+        sb.append("<p style='margin: 0; font-weight: bold; color: #d32f2f; font-size: 16px;'>THÔNG TIN NGƯỜI CẦN TRỢ GIÚP:</p>");
+        sb.append("<p style='margin: 5px 0;'>- Họ tên: <b>").append(user != null ? user.name : "N/A").append("</b></p>");
+        sb.append("<p style='margin: 5px 0;'>- Ngày sinh: ").append(user != null && user.dateOfBirth != null ? user.dateOfBirth : "N/A").append("</p>");
+        if (user != null && user.bloodType != null) {
+            sb.append("<p style='margin: 5px 0;'>- Nhóm máu: ").append(user.bloodType).append("</p>");
+        }
         sb.append("</div>");
 
-        // KHỐI VỊ TRÍ - LÀM CỰC KỲ NỔI BẬT VỚI NÚT ĐỎ LỚN
-        sb.append("<div style='background-color: #fff5f5; padding: 25px; border: 2px solid #ff4d4d; border-radius: 10px; margin: 25px 0; text-align: center;'>");
-        sb.append("<h3 style='margin-top: 0; color: #ff0000; text-transform: uppercase;'>VỊ TRÍ KHẨN CẤP HIỆN TẠI</h3>");
+        // KHỐI VỊ TRÍ - Gộp tọa độ và nút vào một ô duy nhất
+        sb.append("<div style='background-color: #fff5f5; padding: 20px; border: 2px solid #ff4d4d; border-radius: 10px; margin-bottom: 20px; text-align: center;'>");
+        sb.append("<h3 style='margin-top: 0; color: #ff0000; text-transform: uppercase; font-size: 18px;'>VỊ TRÍ KHẨN CẤP</h3>");
         
         if (location != null) {
             String mapUrl = "https://www.google.com/maps/search/?api=1&query=" + location.getLatitude() + "," + location.getLongitude();
-            sb.append("<p style='font-size: 20px; margin: 15px 0; color: #333;'><b>Tọa độ:</b> ").append(location.getLatitude()).append(", ").append(location.getLongitude()).append("</p>");
-            sb.append("<div style='margin-top: 25px;'>");
-            sb.append("<a href='").append(mapUrl).append("' style='background-color: #ff0000; color: #ffffff; padding: 18px 30px; text-decoration: none; font-weight: bold; font-size: 18px; border-radius: 8px; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.2);'>XEM VỊ TRÍ TRÊN BẢN ĐỒ</a>");
-            sb.append("</div>");
-            sb.append("<p style='font-size: 13px; color: #666; margin-top: 20px;'><i>(Nhấn vào nút đỏ phía trên để mở Google Maps và tìm đường đến cứu giúp)</i></p>");
+            // Tọa độ
+            sb.append("<p style='font-size: 18px; margin: 10px 0; color: #333;'>Tọa độ: <b>").append(location.getLatitude()).append(", ").append(location.getLongitude()).append("</b></p>");
+            // Nút bấm ngay dưới tọa độ
+            sb.append("<a href='").append(mapUrl).append("' style='background-color: #ff0000; color: #ffffff; padding: 15px 25px; text-decoration: none; font-weight: bold; font-size: 16px; border-radius: 8px; display: inline-block; margin-top: 10px;'>MỞ GOOGLE MAPS NGAY</a>");
         } else {
-            sb.append("<p style='color: #d32f2f; font-weight: bold; font-size: 18px; margin: 15px 0;'>KHÔNG XÁC ĐỊNH ĐƯỢC TỌA ĐỘ CHÍNH XÁC</p>");
-            sb.append("<p style='font-size: 14px; color: #333;'>Hệ thống hiện không thể lấy được vị trí GPS. Hãy cố gắng liên lạc với người thân ngay lập tức.</p>");
+            sb.append("<p style='color: #d32f2f; font-weight: bold; font-size: 16px; margin: 10px 0;'>KHÔNG XÁC ĐỊNH ĐƯỢC TỌA ĐỘ CHÍNH XÁC</p>");
         }
         sb.append("</div>");
 
-        if (session != null) {
-            sb.append("<div style='padding: 15px; border-top: 1px solid #eee; background-color: #fffaf0;'>");
-            sb.append("<p style='margin: 5px 0;'><b>Lộ trình dự kiến:</b> ").append(session.route != null ? session.route : "Chưa xác định").append("</p>");
+        // KHỐI HÌNH ẢNH HIỆN TRƯỜNG (Chỉ hiện khi gửi tự động)
+        if (session != null && session.photoPath != null) {
+            sb.append("<div style='text-align: center; margin-bottom: 20px;'>");
+            sb.append("<p style='color: #333; font-weight: bold; text-transform: uppercase; font-size: 14px;'>HÌNH ẢNH HIỆN TRƯỜNG:</p>");
+            sb.append("<img src='cid:image_evidence' style='max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #ddd;' alt='Ảnh bằng chứng' />");
             sb.append("</div>");
         }
 
-        // Chú thích cuối email
-        sb.append("<p style='color: #777; font-size: 13px; margin-top: 35px; border-top: 2px solid #eee; padding-top: 20px; line-height: 1.4;'>");
-        sb.append("<i>Email này được gửi tự động từ hệ thống cứu hộ của Emergency Journal. Hãy hành động ngay để giúp đỡ người thân của bạn.</i>");
+        if (session != null) {
+            sb.append("<div style='padding: 12px; border-top: 1px solid #eee; background-color: #fffaf0; font-size: 14px;'>");
+            sb.append("<p style='margin: 0;'><b>Lộ trình:</b> ").append(session.route != null ? session.route : "Chưa xác định").append("</p>");
+            sb.append("</div>");
+        }
+
+        sb.append("<p style='color: #777; font-size: 12px; margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px; line-height: 1.4; text-align: center;'>");
+        sb.append("<i>Hãy hành động ngay để giúp đỡ người thân của bạn.</i>");
         sb.append("</p>");
 
         sb.append("</div>");
@@ -153,7 +164,7 @@ public class EmailHelper {
         return sb.toString();
     }
 
-    private static void sendMail(String recipient, String subject, String content) {
+    private static void sendMail(String recipient, String subject, String content, String photoPath) {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
@@ -172,8 +183,25 @@ public class EmailHelper {
             message.setFrom(new InternetAddress(SENDER_EMAIL));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipient));
             message.setSubject(subject);
-            message.setContent(content, "text/html; charset=utf-8");
 
+            Multipart multipart = new MimeMultipart();
+            BodyPart messageBodyPart = new MimeBodyPart();
+            messageBodyPart.setContent(content, "text/html; charset=utf-8");
+            multipart.addBodyPart(messageBodyPart);
+
+            if (photoPath != null && !photoPath.isEmpty()) {
+                File photoFile = new File(photoPath);
+                if (photoFile.exists()) {
+                    MimeBodyPart imagePart = new MimeBodyPart();
+                    DataSource fds = new FileDataSource(photoPath);
+                    imagePart.setDataHandler(new DataHandler(fds));
+                    imagePart.setHeader("Content-ID", "<image_evidence>");
+                    imagePart.setFileName(photoFile.getName());
+                    multipart.addBodyPart(imagePart);
+                }
+            }
+
+            message.setContent(multipart);
             Transport.send(message);
             Log.d(TAG, "Đã gửi Email thành công tới: " + recipient);
         } catch (MessagingException e) {

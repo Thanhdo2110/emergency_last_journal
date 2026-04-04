@@ -76,33 +76,49 @@ public class HistoryAdapter extends ListAdapter<SessionEntity, HistoryAdapter.Vi
             String routeText = (session.route != null && !session.route.isEmpty()) ? session.route : "Không có mô tả lộ trình";
             tvRoute.setText(routeText);
 
-            // Logic hiển thị trạng thái mới: "safe" -> AN TOÀN, "emergency" -> NGUY HIỂM
+            // Logic hiển thị trạng thái theo yêu cầu mới
             String outcome = session.outcome != null ? session.outcome : "active";
             
             switch (outcome) {
                 case "safe":
+                case "manual":
                     chipStatus.setText("AN TOÀN");
                     chipStatus.setChipBackgroundColorResource(R.color.bg_status_green_alpha);
                     chipStatus.setTextColor(itemView.getContext().getColor(R.color.status_green));
                     chipStatus.setChipStrokeColorResource(R.color.status_green);
                     break;
+                case "danger":
                 case "emergency":
-                    chipStatus.setText("NGUY HIỂM");
+                    // Phân biệt NGUY HIỂM (hết giờ) và KHẨN CẤP (nhấn SOS)
+                    if ("emergency".equals(outcome)) {
+                        chipStatus.setText("KHẨN CẤP");
+                        chipStatus.setChipBackgroundColorResource(R.color.bg_alert_red_alpha);
+                        chipStatus.setTextColor(itemView.getContext().getColor(R.color.alert_red));
+                        chipStatus.setChipStrokeColorResource(R.color.alert_red);
+                    } else {
+                        chipStatus.setText("NGUY HIỂM");
+                        chipStatus.setChipBackgroundColorResource(R.color.bg_alert_red_alpha);
+                        chipStatus.setTextColor(itemView.getContext().getColor(R.color.alert_red));
+                        chipStatus.setChipStrokeColorResource(R.color.alert_red);
+                    }
+                    break;
+                case "sos_manual":
+                    chipStatus.setText("KHẨN CẤP");
                     chipStatus.setChipBackgroundColorResource(R.color.bg_alert_red_alpha);
                     chipStatus.setTextColor(itemView.getContext().getColor(R.color.alert_red));
                     chipStatus.setChipStrokeColorResource(R.color.alert_red);
                     break;
-                case "manual":
-                    chipStatus.setText("TỰ KẾT THÚC");
-                    chipStatus.setChipBackgroundColorResource(R.color.contact_blue_bg);
-                    chipStatus.setTextColor(itemView.getContext().getColor(R.color.contact_blue));
-                    chipStatus.setChipStrokeColorResource(R.color.contact_blue);
-                    break;
-                default:
+                case "active":
                     chipStatus.setText("ĐANG CHẠY");
                     chipStatus.setChipBackgroundColorResource(R.color.primary_bg);
                     chipStatus.setTextColor(itemView.getContext().getColor(R.color.primary));
                     chipStatus.setChipStrokeColorResource(R.color.primary);
+                    break;
+                default:
+                    chipStatus.setText("AN TOÀN");
+                    chipStatus.setChipBackgroundColorResource(R.color.bg_status_green_alpha);
+                    chipStatus.setTextColor(itemView.getContext().getColor(R.color.status_green));
+                    chipStatus.setChipStrokeColorResource(R.color.status_green);
                     break;
             }
 

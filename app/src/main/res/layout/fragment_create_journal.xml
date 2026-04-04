@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_dark"
+    android:clipToPadding="false"
     android:fillViewport="true">
 
     <LinearLayout
@@ -12,7 +13,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="20dp"
-        android:paddingBottom="160dp">
+        android:paddingBottom="140dp"> <!-- Padding lớn để nút Bắt đầu không bị che -->
 
         <!-- Lộ trình Section -->
         <TextView
@@ -125,7 +126,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card Vị trí Zalo Style -->
+            <!-- Card Vị trí -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardGetLocation"
                 android:layout_width="match_parent"
@@ -160,8 +161,7 @@
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@android:drawable/ic_menu_mylocation"
-                            app:tint="@color/primary"
-                            android:contentDescription="Biểu tượng định vị" />
+                            app:tint="@color/primary" />
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -182,9 +182,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Chưa xác định vị trí"
                                 android:textColor="@color/text_secondary_dark"
-                                android:textSize="12sp"
-                                android:ellipsize="end"
-                                android:maxLines="2"/>
+                                android:textSize="12sp" />
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
@@ -209,8 +207,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             app:singleSelection="true"
-            app:selectionRequired="true"
-            app:checkedButton="@+id/btnSafeState">
+            app:selectionRequired="true">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSafeState"
@@ -243,8 +240,7 @@
                 android:text="Nguy hiểm"
                 android:textColor="@color/alert_red"
                 app:icon="@android:drawable/ic_dialog_alert"
-                app:iconTint="@color/alert_red"
-                app:strokeColor="@color/alert_red" />
+                app:iconTint="@color/alert_red" />
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
         <!-- Hẹn giờ Section -->
@@ -263,36 +259,39 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableStart="@android:drawable/ic_menu_recent_history"
-                    android:drawablePadding="8dp"
-                    android:drawableTint="@color/primary"
-                    android:gravity="center_vertical"
-                    android:text="HẸN GIỜ BẢO VỆ"
-                    android:textColor="@color/white"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvTimerDisplay"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-                    android:layout_marginTop="-24dp"
-                    android:text="00:15:00"
-                    android:textColor="@color/primary"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:drawableStart="@android:drawable/ic_menu_recent_history"
+                        android:drawablePadding="8dp"
+                        android:drawableTint="@color/primary"
+                        android:gravity="center_vertical"
+                        android:text="HẸN GIỜ BẢO VỆ"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tvTimerDisplay"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="00g 15p"
+                        android:textColor="@color/primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold"/>
+                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="160dp"
                     android:layout_marginTop="16dp"
                     android:gravity="center"
-                    android:orientation="horizontal"
-                    android:background="#15000000">
+                    android:orientation="horizontal">
 
                     <NumberPicker
                         android:id="@+id/npHour"
@@ -332,11 +331,6 @@
             app:icon="@android:drawable/ic_lock_power_off"
             app:iconPadding="12dp"
             app:elevation="8dp"/>
-
-        <!-- View trống cuối cùng để nút không bị che -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="40dp" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

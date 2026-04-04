@@ -1,6 +1,9 @@
 package com.example.emergencylastjournal;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,10 +21,14 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import com.example.emergencylastjournal.data.db.AppDatabase;
 import com.example.emergencylastjournal.data.entity.ContactEntity;
+import com.example.emergencylastjournal.data.entity.SessionEntity;
 import com.example.emergencylastjournal.data.entity.SessionState;
 import com.example.emergencylastjournal.service.TrackingForegroundService;
 import com.example.emergencylastjournal.util.EmailHelper;
 import com.example.emergencylastjournal.util.SmsHelper;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.util.List;
@@ -32,6 +39,7 @@ public class HomeFragment extends Fragment {
     private TextView tvStatus, tvTimerH, tvTimerM, tvTimerS;
     private MaterialCardView statusBadge, timerCard, cardEmergency;
     private View homeRootLayout;
+    private FusedLocationProviderClient fusedLocationClient;
     
     // Biến static để theo dõi việc hiển thị thông báo trong phiên chạy app
     private static boolean hasShownContactWarningThisSession = false;
@@ -54,6 +62,8 @@ public class HomeFragment extends Fragment {
         tvTimerH = view.findViewById(R.id.tvTimerH);
         tvTimerM = view.findViewById(R.id.tvTimerM);
         tvTimerS = view.findViewById(R.id.tvTimerS);
+        
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
 
         // Lắng nghe trạng thái bảo vệ để cập nhật UI
         if (TrackingForegroundService.currentState != null) {
@@ -206,14 +216,50 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    @SuppressLint("MissingPermission")
     private void performEmergencyActions() {
-        Toast.makeText(getContext(), "Đang gửi tín hiệu SOS khẩn cấp (SMS & Email)...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Đang xác định vị trí và gửi SOS...", Toast.LENGTH_SHORT).show();
         
-        // Gửi SMS
-        SmsHelper.sendEmergencyAlert(requireContext(), -1);
-        
-        // Gửi Email
-        EmailHelper.sendEmergencyEmail(requireContext(), -1);
+        // Lấy vị trí hiện tại trước khi lưu lịch sử
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+            .addOnSuccessListener(location -> {
+                Double lat = (location != null) ? location.getLatitude() : null;
+                Double lng = (location != null) ? location.getLongitude() : null;
+                
+                // Gửi SMS
+                SmsHelper.sendEmergencyAlert(requireContext(), -1);
+                
+                // Gửi Email
+                EmailHelper.sendEmergencyEmail(requireContext(), -1);
+
+                // LƯU VÀO LỊCH SỬ với tọa độ
+                saveEmergencyToHistory(lat, lng);
+            })
+            .addOnFailureListener(e -> {
+                // Nếu lỗi định vị vẫn gửi SOS nhưng không có tọa độ trong lịch sử
+                SmsHelper.sendEmergencyAlert(requireContext(), -1);
+                EmailHelper.sendEmergencyEmail(requireContext(), -1);
+                saveEmergencyToHistory(null, null);
+            });
+    }
+
+    private void saveEmergencyToHistory(Double lat, Double lng) {
+        Context context = getContext();
+        if (context == null) return;
+
+        Executors.newSingleThreadExecutor().execute(() -> {
+            SessionEntity emergencySession = new SessionEntity();
+            emergencySession.route = "Kích hoạt SOS khẩn cấp từ màn hình chính";
+            emergencySession.status = "danger";
+            emergencySession.timerDuration = 0;
+            emergencySession.startedAt = System.currentTimeMillis();
+            emergencySession.endedAt = System.currentTimeMillis();
+            emergencySession.outcome = "emergency";
+            emergencySession.latitude = lat;
+            emergencySession.longitude = lng;
+            
+            AppDatabase.getInstance(context).sessionDao().insert(emergencySession);
+        });
     }
 
     private void resetTimerDisplay() {

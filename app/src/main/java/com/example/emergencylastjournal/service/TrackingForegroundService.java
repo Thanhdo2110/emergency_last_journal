@@ -130,9 +130,10 @@ public class TrackingForegroundService extends Service {
                 if (!isEmailSent) {
                     isEmailSent = true;
                     showSpecialNotification(NOTIF_ID_URGENT, "HẾT GIỜ! Đã gửi Email SOS tới người thân!");
-                    updateSessionOutcome("emergency");
+                    // KHI HẾT GIỜ: Đánh dấu là NGUY HIỂM trong lịch sử
+                    updateSessionOutcome("danger");
                     
-                    // CHUYỂN SANG GỬI EMAIL THAY VÌ SMS
+                    // Gửi Email SOS
                     EmailHelper.sendEmergencyEmail(TrackingForegroundService.this, currentSessionId);
                 }
             }

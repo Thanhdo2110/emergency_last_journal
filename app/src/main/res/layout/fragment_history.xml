@@ -50,44 +50,52 @@
         android:layout_height="wrap_content"
         android:scrollbars="none">
 
-        <LinearLayout
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupFilter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:paddingHorizontal="16dp"
-            android:paddingBottom="16dp">
+            android:paddingBottom="16dp"
+            app:singleSelection="true"
+            app:selectionRequired="true">
 
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGroupFilter"
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipAll"
+                style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:singleSelection="true"
-                app:selectionRequired="true">
+                android:text="Tất cả"
+                android:checked="true"/>
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipAll"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/filter_all"
-                    android:checked="true"/>
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipSafe"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="An toàn" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipSafe"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="An toàn" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipDanger"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nguy hiểm" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipDanger"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Nguy hiểm" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipEmergency"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Khẩn cấp" />
 
-            </com.google.android.material.chip.ChipGroup>
-        </LinearLayout>
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipRunning"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Đang chạy" />
+
+        </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
 
     <androidx.recyclerview.widget.RecyclerView

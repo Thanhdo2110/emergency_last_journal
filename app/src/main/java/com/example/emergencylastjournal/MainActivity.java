@@ -58,17 +58,21 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // Xử lý Insets thông minh: Không dùng padding cho toàn bộ layout nữa
+        // TỐI ƯU INSETS: Xử lý cả Top và Bottom một cách chính xác
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            // Chỉ áp dụng padding trên để tránh Toolbar bị lấp bởi status bar
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
             
-            // Áp dụng padding dưới RIÊNG cho BottomNav để hiện chữ mà không tạo khoảng trắng thừa
+            // Padding top cho main container để tránh status bar
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
+
+            // Margin bottom cho BottomNavigationView để nó không bị Navigation Bar của hệ thống che
             if (bottomNav != null) {
-                bottomNav.setPadding(0, 0, 0, systemBars.bottom);
+                ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) bottomNav.getLayoutParams();
+                layoutParams.bottomMargin = systemBars.bottom;
+                bottomNav.setLayoutParams(layoutParams);
             }
-            return insets;
+            
+            return WindowInsetsCompat.CONSUMED;
         });
 
         if (navController != null) {

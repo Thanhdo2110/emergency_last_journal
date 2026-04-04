@@ -4,13 +4,15 @@
     android:id="@+id/homeRootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clipToPadding="false"
     android:background="@color/background_light">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:paddingBottom="100dp"> <!-- Padding lớn để không bị BottomNav che -->
 
         <!-- Status Badge -->
         <com.google.android.material.card.MaterialCardView
@@ -57,7 +59,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Emergency Button Section - Reduced Size -->
+        <!-- Emergency Button Section -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardEmergency"
             android:layout_width="match_parent"
@@ -191,8 +193,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:orientation="vertical"
-            android:paddingBottom="80dp">
+            android:orientation="vertical">
 
             <!-- Create Card -->
             <com.google.android.material.card.MaterialCardView
@@ -258,7 +259,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Contacts Card - MOVED UP -->
+            <!-- Contacts Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardContacts"
                 android:layout_width="match_parent"
@@ -323,7 +324,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- History Card - MOVED DOWN -->
+            <!-- History Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardHistory"
                 android:layout_width="match_parent"

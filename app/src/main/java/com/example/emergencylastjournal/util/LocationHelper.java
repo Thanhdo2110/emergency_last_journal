@@ -12,7 +12,6 @@ import com.google.android.gms.tasks.OnSuccessListener;
 
 public class LocationHelper {
     public static LocationRequest createLocationRequest() {
-        // Cấu hình để lấy vị trí mượt và chính xác nhất như Google Maps
         return new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000) 
                 .setMinUpdateDistanceMeters(2) 
                 .build();
@@ -22,12 +21,18 @@ public class LocationHelper {
     public static void getLastLocation(Context context, OnSuccessListener<Location> listener) {
         FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(context);
         
-        // Thay vì lấy vị trí cũ (có thể ở Mỹ), ta yêu cầu lấy vị trí THỰC TẾ HIỆN TẠI
         CurrentLocationRequest request = new CurrentLocationRequest.Builder()
                 .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-                .setMaxUpdateAgeMillis(5000) // Chỉ chấp nhận vị trí mới trong vòng 5 giây
+                .setMaxUpdateAgeMillis(10000) // Chấp nhận vị trí trong vòng 10 giây
                 .build();
                 
-        client.getCurrentLocation(request, null).addOnSuccessListener(listener);
+        client.getCurrentLocation(request, null).addOnSuccessListener(location -> {
+            if (location != null) {
+                listener.onSuccess(location);
+            } else {
+                // FALLBACK: Nếu không lấy được vị trí mới (do đang ở trong nhà...), lấy vị trí cuối cùng được lưu
+                client.getLastLocation().addOnSuccessListener(listener);
+            }
+        });
     }
 }

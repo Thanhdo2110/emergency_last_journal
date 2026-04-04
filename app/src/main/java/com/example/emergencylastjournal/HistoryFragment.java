@@ -19,8 +19,10 @@ import com.example.emergencylastjournal.ui.history.HistoryAdapter;
 import com.example.emergencylastjournal.viewmodel.HistoryViewModel;
 import com.google.android.material.chip.ChipGroup;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class HistoryFragment extends Fragment {
@@ -69,7 +71,7 @@ public class HistoryFragment extends Fragment {
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override
             public void afterTextChanged(Editable s) {
-                currentSearchQuery = s.toString().toLowerCase().trim();
+                currentSearchQuery = removeAccent(s.toString().toLowerCase().trim());
                 applyFilterAndSearch();
             }
         });
@@ -81,7 +83,9 @@ public class HistoryFragment extends Fragment {
             } else {
                 int id = checkedIds.get(0);
                 if (id == R.id.chipSafe) currentFilter = "safe";
-                else if (id == R.id.chipDanger) currentFilter = "emergency";
+                else if (id == R.id.chipDanger) currentFilter = "danger";
+                else if (id == R.id.chipEmergency) currentFilter = "emergency";
+                else if (id == R.id.chipRunning) currentFilter = "active";
                 else currentFilter = "all";
             }
             applyFilterAndSearch();
@@ -93,18 +97,23 @@ public class HistoryFragment extends Fragment {
 
         List<SessionEntity> filteredList = fullList.stream()
             .filter(session -> {
-                // Lọc theo trạng thái
+                // Lọc theo trạng thái kết quả
                 boolean matchFilter = true;
-                if (currentFilter.equals("safe")) {
-                    matchFilter = "safe".equals(session.outcome);
-                } else if (currentFilter.equals("emergency")) {
-                    matchFilter = "emergency".equals(session.outcome);
+                String outcome = session.outcome != null ? session.outcome : "active";
+                
+                if (!currentFilter.equals("all")) {
+                    if (currentFilter.equals("safe")) {
+                        matchFilter = "safe".equals(outcome) || "manual".equals(outcome);
+                    } else {
+                        matchFilter = currentFilter.equals(outcome);
+                    }
                 }
                 
-                // Lọc theo từ khóa tìm kiếm (lộ trình)
+                // Lọc theo từ khóa tìm kiếm (lộ trình) - Đã bỏ dấu
                 boolean matchSearch = true;
                 if (!currentSearchQuery.isEmpty()) {
-                    matchSearch = session.route != null && session.route.toLowerCase().contains(currentSearchQuery);
+                    String routeUnaccented = removeAccent(session.route != null ? session.route.toLowerCase() : "");
+                    matchSearch = routeUnaccented.contains(currentSearchQuery);
                 }
                 
                 return matchFilter && matchSearch;
@@ -112,5 +121,12 @@ public class HistoryFragment extends Fragment {
             .collect(Collectors.toList());
 
         adapter.submitList(filteredList);
+    }
+
+    // Hàm loại bỏ dấu tiếng Việt
+    private String removeAccent(String s) {
+        String temp = Normalizer.normalize(s, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        return pattern.matcher(temp).replaceAll("").replace('đ', 'd').replace('Đ', 'D');
     }
 }
